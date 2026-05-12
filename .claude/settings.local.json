@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Command flutter -ErrorAction SilentlyContinue)",
+      "PowerShell($env:PATH)",
+      "PowerShell(Get-ChildItem \"C:\\\\flutter\" -ErrorAction SilentlyContinue; Get-ChildItem \"C:\\\\src\\\\flutter\" -ErrorAction SilentlyContinue; Get-ChildItem \"$env:LOCALAPPDATA\\\\flutter\" -ErrorAction SilentlyContinue; Get-ChildItem \"C:\\\\Users\\\\Lenovo\\\\flutter\" -ErrorAction SilentlyContinue)",
+      "PowerShell(cmd /c \"dir C:\\\\ /b 2>&1\")",
+      "PowerShell(cmd /c \"dir C:\\\\src /b 2>&1\")",
+      "PowerShell(cmd /c \"where dart 2>&1\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Pub /b 2>&1\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Lenovo /b /ad 2>&1\")",
+      "PowerShell($env:PATH = \"C:\\\\Users\\\\Lenovo\\\\.puro\\\\envs\\\\stable\\\\flutter\\\\bin;\" + $env:PATH; cmd /c \"C:\\\\Users\\\\Lenovo\\\\.puro\\\\envs\\\\stable\\\\flutter\\\\bin\\\\flutter.bat devices 2>&1\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Lenovo\\\\.puro\\\\envs\\\\stable /b 2>&1\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Lenovo\\\\.puro\\\\envs\\\\stable\\\\flutter\\\\bin /b 2>&1\")",
+      "PowerShell(cmd /c \"C:\\\\Users\\\\Lenovo\\\\.puro\\\\bin\\\\puro.bat flutter devices 2>&1\")",
+      "PowerShell(cmd /c \"type C:\\\\Users\\\\Lenovo\\\\.puro\\\\bin\\\\puro.bat\")",
+      "PowerShell(cmd /c \"C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\pingbird.Puro_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\puro.exe\" flutter devices 2>&1)",
+      "PowerShell(& \"C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages\\\\pingbird.Puro_Microsoft.Winget.Source_8wekyb3d8bbwe\\\\puro.exe\" flutter devices)",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Microsoft\\\\WinGet\\\\Packages /b 2>&1\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local /b /ad 2>&1\")",
+      "PowerShell(findstr /i \"puro\\\\|winget\\\\|flutter\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Packages /b /ad 2>&1\")",
+      "PowerShell(findstr /i \"puro\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Programs /b 2>&1\")",
+      "PowerShell(cmd /c \"type C:\\\\Users\\\\Lenovo\\\\.puro\\\\envs\\\\stable\\\\flutter\\\\bin\\\\flutter.bat\")",
+      "PowerShell(cmd /c \"where /r C:\\\\ puro.exe 2>&1\")",
+      "PowerShell(Start-Process \"C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\emulator\\\\emulator.exe\" -ArgumentList \"-avd Pixel_8_Pro\" -WindowStyle Normal)",
+      "PowerShell(cmd /c \"C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe shell getprop sys.boot_completed 2>&1\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Lenovo\\\\.android\\\\avd\\\\Pixel_8_Pro.avd /b 2>&1\")",
+      "PowerShell(cmd /c \"taskkill /IM emulator.exe /F 2>&1\")",
+      "PowerShell(cmd /c \"taskkill /IM qemu-system-x86_64.exe /F 2>&1\")",
+      "PowerShell(cmd /c \"tasklist /FI \"\"IMAGENAME eq emulator.exe\"\" /FO CSV 2>&1\")",
+      "PowerShell(cmd /c \"tasklist /FI \"\"IMAGENAME eq qemu-system-x86_64.exe\"\" /FO CSV 2>&1\")",
+      "PowerShell([WinList]::GetAll\\(\\) | Where-Object { $_ -match \"Pixel|Android|Emulator|AVD|gphone\" })",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\Lenovo\\\\show_emulator.ps1\")",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\Lenovo\\\\show_emulator.ps1\" 2>&1 | Out-String)",
+      "PowerShell(powershell -ExecutionPolicy Bypass -NonInteractive -File \"C:\\\\Users\\\\Lenovo\\\\fix_emulator.ps1\" 2>&1)",
+      "PowerShell($r = & powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\Lenovo\\\\show_phone.ps1\" 2>&1 | Out-String; $r)"
+    ]
+  }
+}
