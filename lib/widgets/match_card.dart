@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/match_models.dart';
+import '../services/reactions_service.dart';
+import '../utils/match_vibe.dart';
+import 'match_aura.dart';
+import 'match_vibe_bar.dart';
 
 class MatchCard extends StatelessWidget {
-  const MatchCard({super.key, required this.match, this.onTap});
+  const MatchCard({super.key, required this.match, this.onTap, this.reactionsService});
   final FootballMatch match;
   final VoidCallback? onTap;
+  final ReactionsService? reactionsService;
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +30,11 @@ class MatchCard extends StatelessWidget {
     final awayLogo = match.teams.away.logo;
     final homeWinner = match.teams.home.winner == true;
     final awayWinner = match.teams.away.winner == true;
+    final vibe = MatchVibe.from(match);
 
-    return Card(
+    return MatchAura(
+      vibe: vibe,
+      child: Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -43,7 +51,7 @@ class MatchCard extends StatelessWidget {
                   ),
                 )
               : null,
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
           child: Column(
             children: [
               // League row
@@ -105,13 +113,17 @@ class MatchCard extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
+              Center(child: MatchVibeBar(match: match, compact: true)),
             ],
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }
+
 
 class _LivePill extends StatefulWidget {
   const _LivePill({this.elapsed});
@@ -228,14 +240,14 @@ class _TeamBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: align,
       children: [
-        _LogoWidget(logo: logo, name: name, size: 44),
+        _LogoWidget(logo: logo, name: name, size: 52),
         const SizedBox(height: 8),
         Text(
           name,
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.labelMedium?.copyWith(
+          style: theme.textTheme.bodySmall?.copyWith(
             fontWeight: winner ? FontWeight.w800 : FontWeight.w500,
             color: winner
                 ? theme.colorScheme.primary

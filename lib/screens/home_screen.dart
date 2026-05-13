@@ -8,6 +8,9 @@ import '../models/standing_models.dart';
 import '../models/team_models.dart';
 import '../services/favorites_service.dart';
 import '../services/football_api_service.dart';
+import '../services/prediction_service.dart';
+import '../services/reactions_service.dart';
+import '../services/xp_service.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
@@ -16,6 +19,8 @@ import '../widgets/section_header.dart';
 import 'ai_chat_screen.dart';
 import 'league_detail_screen.dart';
 import 'match_detail_screen.dart';
+import 'profile_screen.dart';
+import 'quiz_screen.dart';
 import 'team_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -23,11 +28,17 @@ class HomeScreen extends StatefulWidget {
     super.key,
     required this.apiService,
     required this.favoritesService,
+    required this.xpService,
+    required this.reactionsService,
+    required this.predictionService,
     this.themeMode = ThemeMode.dark,
     this.onToggleTheme,
   });
   final FootballApiService apiService;
   final FavoritesService favoritesService;
+  final XpService xpService;
+  final ReactionsService reactionsService;
+  final PredictionService predictionService;
   final ThemeMode themeMode;
   final VoidCallback? onToggleTheme;
 
@@ -55,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 9, vsync: this);
+    _tabController = TabController(length: 11, vsync: this);
     _primeFutures();
     _startLiveTimer();
     _tabController.addListener(_onTabChanged);
@@ -147,7 +158,22 @@ class _HomeScreenState extends State<HomeScreen>
   void _openMatchDetail(BuildContext context, FootballMatch match) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => MatchDetailScreen(match: match)),
+      PageRouteBuilder(
+        pageBuilder: (_, animation, _) => MatchDetailScreen(
+          match: match,
+          xpService: widget.xpService,
+          reactionsService: widget.reactionsService,
+          predictionService: widget.predictionService,
+        ),
+        transitionsBuilder: (_, animation, _, child) {
+          final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          return SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(curved),
+            child: FadeTransition(opacity: curved, child: child),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 320),
+      ),
     );
   }
 
@@ -184,37 +210,9 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 style: const TextStyle(color: Colors.white, fontSize: 16),
               )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.sports_soccer,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 26,
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'FootbalLive',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      Text(
-                        'by Ayoub',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w400,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+            : Image.asset(
+                'assets/logo.png',
+                height: 36,
               ),
         actions: [
           if (_isSearching && _searchQuery.isNotEmpty)
@@ -287,6 +285,14 @@ class _HomeScreenState extends State<HomeScreen>
               icon: Icon(Icons.auto_awesome, size: 14),
               text: 'AI Chat',
             ),
+            const Tab(
+              icon: Icon(Icons.quiz_outlined, size: 14),
+              text: 'Quiz',
+            ),
+            const Tab(
+              icon: Icon(Icons.emoji_events, size: 14),
+              text: 'Profile',
+            ),
           ],
         ),
       ),
@@ -301,6 +307,7 @@ class _HomeScreenState extends State<HomeScreen>
             onRefresh: () => _refreshTab(0),
             onMatchTap: (m) => _openMatchDetail(context, m),
             searchQuery: _searchQuery,
+            reactionsService: widget.reactionsService,
           ),
           _MatchesView(
             title: 'Today',
@@ -310,6 +317,7 @@ class _HomeScreenState extends State<HomeScreen>
             onRefresh: () => _refreshTab(1),
             onMatchTap: (m) => _openMatchDetail(context, m),
             searchQuery: _searchQuery,
+            reactionsService: widget.reactionsService,
           ),
           _MatchesView(
             title: 'Yesterday',
@@ -319,6 +327,7 @@ class _HomeScreenState extends State<HomeScreen>
             onRefresh: () => _refreshTab(2),
             onMatchTap: (m) => _openMatchDetail(context, m),
             searchQuery: _searchQuery,
+            reactionsService: widget.reactionsService,
           ),
           _MatchesView(
             title: 'Tomorrow',
@@ -328,6 +337,7 @@ class _HomeScreenState extends State<HomeScreen>
             onRefresh: () => _refreshTab(3),
             onMatchTap: (m) => _openMatchDetail(context, m),
             searchQuery: _searchQuery,
+            reactionsService: widget.reactionsService,
           ),
           _StandingsView(
             future: _standingsFuture,
@@ -367,7 +377,9 @@ class _HomeScreenState extends State<HomeScreen>
             onRefresh: () => _refreshTab(7),
             onMatchTap: (m) => _openMatchDetail(context, m),
           ),
-          const AiChatScreen(),
+          AiChatScreen(xpService: widget.xpService),
+          QuizScreen(xpService: widget.xpService),
+          ProfileScreen(xpService: widget.xpService),
         ],
       ),
     );
@@ -385,6 +397,7 @@ class _MatchesView extends StatelessWidget {
     required this.onRefresh,
     this.onMatchTap,
     this.searchQuery = '',
+    this.reactionsService,
   });
 
   final String title;
@@ -394,6 +407,7 @@ class _MatchesView extends StatelessWidget {
   final Future<void> Function() onRefresh;
   final void Function(FootballMatch)? onMatchTap;
   final String searchQuery;
+  final ReactionsService? reactionsService;
 
   @override
   Widget build(BuildContext context) {
@@ -465,9 +479,8 @@ class _MatchesView extends StatelessWidget {
                     final match = matches[index - 1];
                     return MatchCard(
                       match: match,
-                      onTap: onMatchTap != null
-                          ? () => onMatchTap!(match)
-                          : null,
+                      onTap: onMatchTap != null ? () => onMatchTap!(match) : null,
+                      reactionsService: reactionsService,
                     );
                   },
                 ),

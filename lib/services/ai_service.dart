@@ -37,20 +37,22 @@ class AiService {
 
     late final http.Response response;
     try {
-      response = await _client.post(
-        Uri.parse('$_baseUrl/chat/completions'),
-        headers: {
-          'Authorization': 'Bearer $_token',
-          'Content-Type': 'application/json',
-        },
-        body: body,
-      );
-    } catch (e) {
+      response = await _client
+          .post(
+            Uri.parse('$_baseUrl/chat/completions'),
+            headers: {
+              'Authorization': 'Bearer $_token',
+              'Content-Type': 'application/json',
+            },
+            body: body,
+          )
+          .timeout(const Duration(seconds: 30));
+    } on Exception catch (e) {
       throw Exception('Failed to connect to AI: $e');
     }
 
     if (response.statusCode != 200) {
-      throw Exception('AI error (${response.statusCode}): ${response.body}');
+      throw Exception('AI error ${response.statusCode}: ${response.body}');
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;

@@ -35,7 +35,12 @@
       "PowerShell(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\Lenovo\\\\show_emulator.ps1\")",
       "PowerShell(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\Lenovo\\\\show_emulator.ps1\" 2>&1 | Out-String)",
       "PowerShell(powershell -ExecutionPolicy Bypass -NonInteractive -File \"C:\\\\Users\\\\Lenovo\\\\fix_emulator.ps1\" 2>&1)",
-      "PowerShell($r = & powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\Lenovo\\\\show_phone.ps1\" 2>&1 | Out-String; $r)"
+      "PowerShell($r = & powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\Lenovo\\\\show_phone.ps1\" 2>&1 | Out-String; $r)",
+      "PowerShell(cmd /c \"taskkill /IM emulator.exe /F 2>nul\")",
+      "PowerShell(cmd /c \"taskkill /IM qemu-system-x86_64.exe /F 2>nul\")",
+      "PowerShell(Start-Process \"C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\emulator\\\\emulator.exe\" -ArgumentList \"-avd Pixel_8_Pro -no-snapshot-load\" -WindowStyle Normal)",
+      "Bash(C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe devices *)",
+      "PowerShell(& \"C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" devices 2>&1)"
     ]
   }
 }

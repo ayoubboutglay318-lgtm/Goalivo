@@ -2,17 +2,58 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/match_models.dart';
+import '../services/notification_service.dart';
+import '../services/prediction_service.dart';
+import '../services/reactions_service.dart';
+import '../services/xp_service.dart';
 import '../widgets/event_timeline.dart';
 import '../widgets/info_chip.dart';
+import '../widgets/man_of_match_widget.dart';
+import '../utils/match_vibe.dart';
+import '../widgets/match_aura.dart';
+import '../widgets/player_ratings_widget.dart';
+import '../widgets/prediction_widget.dart';
+import '../widgets/reaction_bar.dart';
 import 'ai_chat_screen.dart';
+import 'profile_screen.dart';
 import 'watch_screen.dart';
 
-class MatchDetailScreen extends StatelessWidget {
-  const MatchDetailScreen({super.key, required this.match});
+class MatchDetailScreen extends StatefulWidget {
+  const MatchDetailScreen({
+    super.key,
+    required this.match,
+    this.xpService,
+    this.reactionsService,
+    this.predictionService,
+  });
   final FootballMatch match;
+  final XpService? xpService;
+  final ReactionsService? reactionsService;
+  final PredictionService? predictionService;
+
+  @override
+  State<MatchDetailScreen> createState() => _MatchDetailScreenState();
+}
+
+class _MatchDetailScreenState extends State<MatchDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _trackXp();
+  }
+
+  Future<void> _trackXp() async {
+    final svc = widget.xpService;
+    if (svc == null) return;
+    final result = await svc.trackEvent(XpEvent.viewMatchDetail);
+    if (mounted && result.xpGained > 0) {
+      XpToast.show(context, xpGained: result.xpGained, newBadges: result.newBadges);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final match = widget.match;
     final theme = Theme.of(context);
     final status = match.fixture.status?.short ?? 'NS';
     final isLive = {'1H', '2H', 'HT', 'ET', 'P'}.contains(status);
@@ -54,6 +95,13 @@ class MatchDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Remind Me button (upcoming matches only)
+                  if (status == 'NS' &&
+                      match.fixture.date != null &&
+                      match.fixture.date!.isAfter(DateTime.now())) ...[
+                    _RemindMeButton(match: match),
+                    const SizedBox(height: 10),
+                  ],
                   // Watch button
                   FilledButton.icon(
                     onPressed: () => Navigator.push(
@@ -77,7 +125,7 @@ class MatchDetailScreen extends StatelessWidget {
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => AiChatScreen(match: match),
+                        builder: (_) => AiChatScreen(match: match, xpService: widget.xpService),
                       ),
                     ),
                     icon: const Icon(Icons.auto_awesome, size: 18),
@@ -89,6 +137,21 @@ class MatchDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  AuraAtmosphere(vibe: MatchVibe.from(match)),
+                  const SizedBox(height: 12),
+                  if (widget.reactionsService != null && match.fixture.id != null)
+                    ReactionBar(
+                      fixtureId: match.fixture.id!,
+                      reactionsService: widget.reactionsService!,
+                    ),
+                  const SizedBox(height: 16),
+                  if (widget.predictionService != null)
+                    PredictionWidget(
+                      match: match,
+                      predictionService: widget.predictionService!,
+                      xpService: widget.xpService,
+                    ),
+                  if (widget.predictionService != null) const SizedBox(height: 16),
                   _InfoRow(match: match),
                   if (match.score?.halftime != null) ...[
                     const SizedBox(height: 16),
@@ -108,6 +171,10 @@ class MatchDetailScreen extends StatelessWidget {
                       homeTeamId: match.teams.home.id,
                       showAll: true,
                     ),
+                    const SizedBox(height: 16),
+                    PlayerRatingsWidget(match: match),
+                    const SizedBox(height: 16),
+                    ManOfMatchWidget(match: match),
                   ],
                   const SizedBox(height: 32),
                 ],
@@ -434,6 +501,65 @@ class _ScoreBreakdown extends StatelessWidget {
             }),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Remind Me button ──────────────────────────────────────────────────────────
+
+class _RemindMeButton extends StatefulWidget {
+  const _RemindMeButton({required this.match});
+  final FootballMatch match;
+
+  @override
+  State<_RemindMeButton> createState() => _RemindMeButtonState();
+}
+
+class _RemindMeButtonState extends State<_RemindMeButton> {
+  bool _reminded = false;
+
+  Future<void> _setReminder() async {
+    final granted = await NotificationService.instance.requestPermission();
+    if (!granted && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enable notifications in Settings.')),
+      );
+      return;
+    }
+    final id = widget.match.fixture.id ?? 0;
+    final home = widget.match.teams.home.name ?? 'Home';
+    final away = widget.match.teams.away.name ?? 'Away';
+    final kickOff = widget.match.fixture.date!;
+    await NotificationService.instance.scheduleMatchReminder(
+      fixtureId: id,
+      homeTeam: home,
+      awayTeam: away,
+      kickOff: kickOff,
+    );
+    if (mounted) {
+      setState(() => _reminded = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reminder set — 15 min before $home vs $away!')),
+      );
+    }
+  }
+
+  Future<void> _cancel() async {
+    await NotificationService.instance.cancelReminder(widget.match.fixture.id ?? 0);
+    if (mounted) setState(() => _reminded = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: _reminded ? _cancel : _setReminder,
+      icon: Icon(_reminded ? Icons.notifications_active : Icons.notifications_outlined, size: 18),
+      label: Text(_reminded ? 'Reminder Set ✓' : 'Remind Me'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: _reminded ? Colors.amber : Colors.white70,
+        side: BorderSide(color: _reminded ? Colors.amber : Colors.white24),
+        padding: const EdgeInsets.symmetric(vertical: 14),
       ),
     );
   }

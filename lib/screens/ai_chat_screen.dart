@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../models/match_models.dart';
 import '../services/ai_service.dart';
+import '../services/xp_service.dart';
+import 'profile_screen.dart';
 
 class AiChatScreen extends StatefulWidget {
-  const AiChatScreen({super.key, this.match});
+  const AiChatScreen({super.key, this.match, this.xpService});
   final FootballMatch? match;
+  final XpService? xpService;
 
   @override
   State<AiChatScreen> createState() => _AiChatScreenState();
@@ -60,6 +63,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
         league: league,
         events: events,
       );
+      if (!mounted) return;
       setState(() {
         _history.add(ChatMessage(
           role: 'user',
@@ -68,15 +72,18 @@ class _AiChatScreenState extends State<AiChatScreen> {
         _history.add(ChatMessage(role: 'assistant', content: reply));
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _history.add(ChatMessage(
           role: 'assistant',
-          content: 'Sorry, I could not analyze this match right now. $e',
+          content: 'Could not analyze match: $e',
         ));
       });
     } finally {
-      setState(() => _loading = false);
-      _scrollToBottom();
+      if (mounted) {
+        setState(() => _loading = false);
+        _scrollToBottom();
+      }
     }
   }
 
@@ -93,19 +100,33 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
     try {
       final reply = await _ai.chat(_history);
+      if (!mounted) return;
       setState(() {
         _history.add(ChatMessage(role: 'assistant', content: reply));
       });
+      if (widget.xpService != null && mounted) {
+        final result = await widget.xpService!.trackEvent(XpEvent.useAiChat);
+        if (mounted) {
+          XpToast.show(
+            context,
+            xpGained: result.xpGained,
+            newBadges: result.newBadges,
+          );
+        }
+      }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _history.add(ChatMessage(
           role: 'assistant',
-          content: 'Sorry, something went wrong. Please try again.',
+          content: 'Error: $e',
         ));
       });
     } finally {
-      setState(() => _loading = false);
-      _scrollToBottom();
+      if (mounted) {
+        setState(() => _loading = false);
+        _scrollToBottom();
+      }
     }
   }
 
