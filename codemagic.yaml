@@ -1,36 +1,36 @@
 workflows:
+  android-release:
+    name: Android Debug Build
+    max_build_duration: 60
+    environment:
+      flutter: stable
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Build APK
+        script: flutter build apk --debug
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+    publishing:
+      email:
+        recipients:
+          - ayoubboutglay318@gmail.com
+
   ios-release:
-    name: iOS App Store Release
+    name: iOS Build
     max_build_duration: 60
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.footballive.football_live
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
-      - name: Build iOS release
-        script: |
-          flutter build ios --release --no-codesign
-      - name: Package IPA
-        script: |
-          xcode-project use-profiles
-          xcodebuild -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath build/Runner.xcarchive \
-            archive
-          xcodebuild -exportArchive \
-            -archivePath build/Runner.xcarchive \
-            -exportOptionsPlist /Users/builder/export_options.plist \
-            -exportPath build/ios/ipa
+      - name: Build iOS (no codesign)
+        script: flutter build ios --release --no-codesign
     artifacts:
-      - build/ios/ipa/*.ipa
+      - build/ios/iphoneos/*.app
     publishing:
-      app_store_connect:
-        auth: integration
-        submit_to_testflight: true
+      email:
+        recipients:
+          - ayoubboutglay318@gmail.com
