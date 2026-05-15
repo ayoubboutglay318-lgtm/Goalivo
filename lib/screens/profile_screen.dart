@@ -78,7 +78,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                     _StatsRow(
                       streak: widget.xpService.streak,
                       matchViews: widget.xpService.matchViews,
-                      aiUses: widget.xpService.aiUses,
                     ),
                     const SizedBox(height: 26),
                     _SectionTitle(
@@ -410,11 +409,9 @@ class _StatsRow extends StatelessWidget {
   const _StatsRow({
     required this.streak,
     required this.matchViews,
-    required this.aiUses,
   });
   final int streak;
   final int matchViews;
-  final int aiUses;
 
   @override
   Widget build(BuildContext context) {
@@ -423,8 +420,6 @@ class _StatsRow extends StatelessWidget {
         Expanded(child: _StatBox(emoji: '🔥', value: '$streak', label: 'Day streak', color: Colors.orange.shade400)),
         const SizedBox(width: 10),
         Expanded(child: _StatBox(emoji: '📺', value: '$matchViews', label: 'Matches', color: Colors.blue.shade400)),
-        const SizedBox(width: 10),
-        Expanded(child: _StatBox(emoji: '🤖', value: '$aiUses', label: 'AI chats', color: Colors.green.shade400)),
       ],
     );
   }

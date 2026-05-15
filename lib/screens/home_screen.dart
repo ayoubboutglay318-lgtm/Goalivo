@@ -16,7 +16,6 @@ import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/match_card.dart';
 import '../widgets/section_header.dart';
-import 'ai_chat_screen.dart';
 import 'league_detail_screen.dart';
 import 'match_detail_screen.dart';
 import 'profile_screen.dart';
@@ -66,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 11, vsync: this);
+    _tabController = TabController(length: 10, vsync: this);
     _primeFutures();
     _startLiveTimer();
     _tabController.addListener(_onTabChanged);
@@ -282,10 +281,6 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             const Tab(
-              icon: Icon(Icons.auto_awesome, size: 14),
-              text: 'AI Chat',
-            ),
-            const Tab(
               icon: Icon(Icons.quiz_outlined, size: 14),
               text: 'Quiz',
             ),
@@ -377,7 +372,6 @@ class _HomeScreenState extends State<HomeScreen>
             onRefresh: () => _refreshTab(7),
             onMatchTap: (m) => _openMatchDetail(context, m),
           ),
-          AiChatScreen(xpService: widget.xpService),
           QuizScreen(xpService: widget.xpService),
           ProfileScreen(xpService: widget.xpService),
         ],

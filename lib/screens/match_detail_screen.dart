@@ -14,7 +14,6 @@ import '../widgets/match_aura.dart';
 import '../widgets/player_ratings_widget.dart';
 import '../widgets/prediction_widget.dart';
 import '../widgets/reaction_bar.dart';
-import 'ai_chat_screen.dart';
 import 'profile_screen.dart';
 import 'watch_screen.dart';
 
@@ -117,22 +116,6 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
                     label: const Text('Watch Live'),
                     style: FilledButton.styleFrom(
                       backgroundColor: Colors.red.shade700,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AiChatScreen(match: match, xpService: widget.xpService),
-                      ),
-                    ),
-                    icon: const Icon(Icons.auto_awesome, size: 18),
-                    label: const Text('Ask AI to Analyze'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.green.shade400,
-                      side: BorderSide(color: Colors.green.shade700),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),

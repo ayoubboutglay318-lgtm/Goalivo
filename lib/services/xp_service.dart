@@ -74,7 +74,6 @@ class Achievement {
 enum XpEvent {
   dailyLogin(20),
   viewMatchDetail(3),
-  useAiChat(10),
   addFavorite(5);
 
   const XpEvent(this.amount);
@@ -90,20 +89,17 @@ class XpService extends ChangeNotifier {
   static const _keyLastLogin     = 'xp_last_login';
   static const _keyStreak        = 'xp_streak';
   static const _keyMatchViews    = 'xp_match_views';
-  static const _keyAiUses        = 'xp_ai_uses';
   static const _keyAchievements  = 'xp_achievements';
 
   int _xp = 0;
   int _streak = 0;
   int _matchViews = 0;
-  int _aiUses = 0;
   Set<String> _earnedAchievements = {};
   bool _loaded = false;
 
   int get xp => _xp;
   int get streak => _streak;
   int get matchViews => _matchViews;
-  int get aiUses => _aiUses;
   bool get loaded => _loaded;
   Set<String> get earnedAchievements => _earnedAchievements;
 
@@ -136,7 +132,6 @@ class XpService extends ChangeNotifier {
     final newBadges = <Achievement>[];
 
     if (event == XpEvent.viewMatchDetail) { _matchViews++; }
-    if (event == XpEvent.useAiChat) { _aiUses++; }
 
     // Check achievements
     newBadges.addAll(await _checkAchievements());
@@ -206,8 +201,6 @@ class XpService extends ChangeNotifier {
     if (_matchViews >= 1) { await tryUnlock('first_match'); }
     if (_matchViews >= 5) { await tryUnlock('match_5'); }
     if (_matchViews >= 25) { await tryUnlock('match_25'); }
-    if (_aiUses >= 1) { await tryUnlock('ai_first'); }
-    if (_aiUses >= 10) { await tryUnlock('ai_10'); }
     if (_streak >= 3) { await tryUnlock('streak_3'); }
     if (_streak >= 7) { await tryUnlock('streak_7'); }
     if (_streak >= 30) { await tryUnlock('streak_30'); }
@@ -237,7 +230,6 @@ class XpService extends ChangeNotifier {
     _xp = prefs.getInt(_keyXp) ?? 0;
     _streak = prefs.getInt(_keyStreak) ?? 0;
     _matchViews = prefs.getInt(_keyMatchViews) ?? 0;
-    _aiUses = prefs.getInt(_keyAiUses) ?? 0;
     _earnedAchievements = (prefs.getStringList(_keyAchievements) ?? []).toSet();
     _loaded = true;
   }
@@ -247,7 +239,6 @@ class XpService extends ChangeNotifier {
     await prefs.setInt(_keyXp, _xp);
     await prefs.setInt(_keyStreak, _streak);
     await prefs.setInt(_keyMatchViews, _matchViews);
-    await prefs.setInt(_keyAiUses, _aiUses);
     await prefs.setStringList(_keyAchievements, _earnedAchievements.toList());
   }
 }
