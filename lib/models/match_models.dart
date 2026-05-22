@@ -305,6 +305,82 @@ class MatchEventPerson {
   }
 }
 
+class MatchTeamStats {
+  const MatchTeamStats({required this.team, this.stats = const []});
+  final MatchTeam team;
+  final List<MatchStatItem> stats;
+
+  factory MatchTeamStats.fromJson(Map<String, dynamic> json) {
+    return MatchTeamStats(
+      team: json['team'] is Map ? MatchTeam.fromJson(_asMap(json['team'])) : const MatchTeam(),
+      stats: _asList(json['statistics']).map((s) => MatchStatItem.fromJson(_asMap(s))).toList(),
+    );
+  }
+
+  String? get(String type) {
+    for (final s in stats) {
+      if (s.type?.toLowerCase() == type.toLowerCase()) return s.value?.toString();
+    }
+    return null;
+  }
+}
+
+class MatchStatItem {
+  const MatchStatItem({this.type, this.value});
+  final String? type;
+  final dynamic value;
+
+  factory MatchStatItem.fromJson(Map<String, dynamic> json) =>
+      MatchStatItem(type: json['type']?.toString(), value: json['value']);
+}
+
+class MatchLineup {
+  const MatchLineup({
+    required this.team,
+    this.formation,
+    this.startXI = const [],
+    this.substitutes = const [],
+  });
+  final MatchTeam team;
+  final String? formation;
+  final List<LineupPlayer> startXI;
+  final List<LineupPlayer> substitutes;
+
+  factory MatchLineup.fromJson(Map<String, dynamic> json) {
+    return MatchLineup(
+      team: json['team'] is Map ? MatchTeam.fromJson(_asMap(json['team'])) : const MatchTeam(),
+      formation: json['formation']?.toString(),
+      startXI: _asList(json['startXI']).map((p) => LineupPlayer.fromJson(_asMap(p))).toList(),
+      substitutes: _asList(json['substitutes']).map((p) => LineupPlayer.fromJson(_asMap(p))).toList(),
+    );
+  }
+}
+
+class LineupPlayer {
+  const LineupPlayer({this.id, this.name, this.number, this.pos, this.grid, this.captain = false});
+  final int? id;
+  final String? name;
+  final int? number;
+  final String? pos;
+  final String? grid;
+  final bool captain;
+
+  factory LineupPlayer.fromJson(Map<String, dynamic> json) {
+    final p = json['player'] is Map ? _asMap(json['player']) : json;
+    return LineupPlayer(
+      id: _toInt(p['id']),
+      name: p['name']?.toString(),
+      number: _toInt(p['number']),
+      pos: p['pos']?.toString(),
+      grid: p['grid']?.toString(),
+      captain: p['captain'] == true || p['captain']?.toString().toLowerCase() == 'true',
+    );
+  }
+
+  String get photoUrl =>
+      id != null && id! > 0 ? 'https://media.api-sports.io/football/players/$id.png' : '';
+}
+
 Map<String, dynamic> _asMap(dynamic value) {
   if (value is Map<String, dynamic>) return value;
   if (value is Map) {

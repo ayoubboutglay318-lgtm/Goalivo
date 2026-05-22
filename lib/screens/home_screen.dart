@@ -1,13 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/league_models.dart';
 import '../models/match_models.dart';
 import '../models/standing_models.dart';
 import '../models/team_models.dart';
 import '../services/favorites_service.dart';
+import '../services/community_service.dart';
+import '../services/commentary_service.dart';
 import '../services/football_api_service.dart';
+import '../services/goal_alerts_service.dart';
+import '../services/news_service.dart';
 import '../services/prediction_service.dart';
 import '../services/reactions_service.dart';
 import '../services/xp_service.dart';
@@ -22,6 +27,8 @@ import 'profile_screen.dart';
 import 'quiz_screen.dart';
 import 'team_detail_screen.dart';
 
+// ignore_for_file: unused_field
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -30,6 +37,10 @@ class HomeScreen extends StatefulWidget {
     required this.xpService,
     required this.reactionsService,
     required this.predictionService,
+    required this.goalAlertsService,
+    required this.communityService,
+    required this.newsService,
+    required this.commentaryService,
     this.themeMode = ThemeMode.dark,
     this.onToggleTheme,
   });
@@ -38,6 +49,10 @@ class HomeScreen extends StatefulWidget {
   final XpService xpService;
   final ReactionsService reactionsService;
   final PredictionService predictionService;
+  final GoalAlertsService goalAlertsService;
+  final CommunityService communityService;
+  final NewsService newsService;
+  final CommentaryService commentaryService;
   final ThemeMode themeMode;
   final VoidCallback? onToggleTheme;
 
@@ -46,162 +61,347 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+    with TickerProviderStateMixin {
+  // Bottom nav
+  int _bottomIndex = 0;
+
+  // Top tab controllers per section
+  late TabController _homeTabCtrl;    // Live, Today
+  late TabController _matchesTabCtrl; // Yesterday, Tomorrow, Standings
+  late TabController _exploreTabCtrl; // Favorites, Teams, Leagues, Fan Zone, Commentary
+
   final TextEditingController _searchController = TextEditingController();
   Timer? _liveRefreshTimer;
-
   bool _isSearching = false;
   String _searchQuery = '';
 
   late Future<List<FootballMatch>> _liveFuture;
-  late Future<List<FootballMatch>> _todayFuture;
-  late Future<List<FootballMatch>> _yesterdayFuture;
-  late Future<List<FootballMatch>> _tomorrowFuture;
+  // _dayFutures: keyed by day offset from today (-3 to +3)
+  final Map<int, Future<List<FootballMatch>>> _dayFutures = {};
   late Future<List<StandingGroup>> _standingsFuture;
   late Future<List<TeamItem>> _teamsFuture;
   late Future<List<LeagueItem>> _leaguesFuture;
+  late Future<List<MatchCommentary>> _commentaryFuture;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 10, vsync: this);
+    _homeTabCtrl = TabController(length: 2, vsync: this);
+    _matchesTabCtrl = TabController(length: 4, vsync: this, initialIndex: 1);
+    _exploreTabCtrl = TabController(length: 4, vsync: this);
+    _homeTabCtrl.addListener(_onHomeTabChanged);
+    _matchesTabCtrl.addListener(_onMatchesTabChanged);
     _primeFutures();
     _startLiveTimer();
-    _tabController.addListener(_onTabChanged);
     widget.favoritesService.addListener(_onFavoritesChanged);
+    widget.apiService.addListener(_onApiStateChanged);
+    widget.goalAlertsService.addListener(_onGoalAlertsChanged);
+  }
+
+  void _onApiStateChanged() { if (mounted) setState(() {}); }
+  void _onGoalAlertsChanged() { if (mounted) setState(() {}); }
+  void _onFavoritesChanged() => setState(() {});
+
+  void _onHomeTabChanged() {
+    if (!_homeTabCtrl.indexIsChanging) return;
+    HapticFeedback.selectionClick();
+    if (_homeTabCtrl.index == 0) {
+      _startLiveTimer();
+    } else {
+      _liveRefreshTimer?.cancel();
+    }
+    if (_isSearching) _closeSearch();
+  }
+
+  void _onMatchesTabChanged() {
+    if (!_matchesTabCtrl.indexIsChanging) return;
+    HapticFeedback.selectionClick();
+    final idx = _matchesTabCtrl.index;
+    if (idx < 7) {
+      final offset = idx - 3;
+      if (!_dayFutures.containsKey(offset)) {
+        setState(() => _loadDay(offset));
+      }
+    }
+  }
+
+  Future<List<FootballMatch>> _loadDay(int offset) {
+    final date = DateTime.now().add(Duration(days: offset));
+    final f = widget.apiService.getMatchesByDate(date);
+    _dayFutures[offset] = f;
+    return f;
+  }
+
+  String _dayTabLabel(int offset) {
+    if (offset == 0) return 'Today';
+    final d = DateTime.now().add(Duration(days: offset));
+    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${names[d.weekday - 1]} ${d.day}';
   }
 
   @override
   void dispose() {
     _liveRefreshTimer?.cancel();
     _searchController.dispose();
-    _tabController.removeListener(_onTabChanged);
-    _tabController.dispose();
+    _homeTabCtrl.removeListener(_onHomeTabChanged);
+    _matchesTabCtrl.removeListener(_onMatchesTabChanged);
+    _homeTabCtrl.dispose();
+    _matchesTabCtrl.dispose();
+    _exploreTabCtrl.dispose();
+    widget.apiService.removeListener(_onApiStateChanged);
+    widget.goalAlertsService.removeListener(_onGoalAlertsChanged);
     widget.favoritesService.removeListener(_onFavoritesChanged);
     super.dispose();
-  }
-
-  void _onFavoritesChanged() => setState(() {});
-
-  void _onTabChanged() {
-    if (_isSearching) {
-      setState(() {
-        _isSearching = false;
-        _searchQuery = '';
-        _searchController.clear();
-      });
-    }
-    if (_tabController.index == 0) {
-      _startLiveTimer();
-    } else {
-      _liveRefreshTimer?.cancel();
-    }
   }
 
   void _startLiveTimer() {
     _liveRefreshTimer?.cancel();
     _liveRefreshTimer = Timer.periodic(const Duration(seconds: 60), (_) {
-      if (mounted && _tabController.index == 0) {
-        setState(() {
-          _liveFuture = widget.apiService.getLiveMatches();
-        });
+      if (mounted && _bottomIndex == 0 && _homeTabCtrl.index == 0) {
+        setState(() { _liveFuture = widget.apiService.getLiveMatches(); });
       }
     });
   }
 
   void _primeFutures() {
     _liveFuture = widget.apiService.getLiveMatches();
-    _todayFuture = widget.apiService.getTodayMatches();
-    _yesterdayFuture = widget.apiService.getYesterdayMatches();
-    _tomorrowFuture = widget.apiService.getTomorrowMatches();
+    _dayFutures[-1] = widget.apiService.getYesterdayMatches();
+    _dayFutures[0]  = widget.apiService.getTodayMatches();
+    _dayFutures[1]  = widget.apiService.getTomorrowMatches();
     _standingsFuture = widget.apiService.getStandings();
     _teamsFuture = widget.apiService.getTeams();
     _leaguesFuture = widget.apiService.getLeagues();
+    _commentaryFuture = widget.commentaryService.getLiveCommentary();
   }
 
-  Future<void> _refreshTab(int index) async {
-    setState(() {
-      switch (index) {
-        case 0:
-          _liveFuture = widget.apiService.getLiveMatches();
-          break;
-        case 1:
-          _todayFuture = widget.apiService.getTodayMatches();
-          break;
-        case 2:
-          _yesterdayFuture = widget.apiService.getYesterdayMatches();
-          break;
-        case 3:
-          _tomorrowFuture = widget.apiService.getTomorrowMatches();
-          break;
-        case 4:
-          _standingsFuture = widget.apiService.getStandings();
-          break;
-        case 5:
-          _teamsFuture = widget.apiService.getTeams();
-          break;
-        case 6:
-          _leaguesFuture = widget.apiService.getLeagues();
-          break;
-        case 7:
-          _liveFuture = widget.apiService.getLiveMatches();
-          _todayFuture = widget.apiService.getTodayMatches();
-          _yesterdayFuture = widget.apiService.getYesterdayMatches();
-          _teamsFuture = widget.apiService.getTeams();
-          break;
-      }
-    });
+  Future<void> _refreshCurrent() async {
+    switch (_bottomIndex) {
+      case 0:
+        setState(() {
+          if (_homeTabCtrl.index == 0) {
+            _liveFuture = widget.apiService.getLiveMatches();
+          } else {
+            _dayFutures[0] = widget.apiService.getTodayMatches();
+          }
+        });
+      case 1:
+        setState(() {
+          switch (_matchesTabCtrl.index) {
+            case 0: _loadDay(-1);
+            case 1: _loadDay(0);
+            case 2: _loadDay(1);
+            case 3: _standingsFuture = widget.apiService.getStandings();
+          }
+        });
+      case 2:
+        switch (_exploreTabCtrl.index) {
+          case 0:
+            setState(() {
+              _liveFuture = widget.apiService.getLiveMatches();
+              _dayFutures[0]  = widget.apiService.getTodayMatches();
+              _dayFutures[-1] = widget.apiService.getYesterdayMatches();
+              _teamsFuture = widget.apiService.getTeams();
+            });
+          case 1: setState(() { _teamsFuture = widget.apiService.getTeams(); });
+          case 2: setState(() { _leaguesFuture = widget.apiService.getLeagues(); });
+          case 3: setState(() { _commentaryFuture = widget.commentaryService.getLiveCommentary(); });
+        }
+    }
   }
 
   void _openMatchDetail(BuildContext context, FootballMatch match) {
+    HapticFeedback.lightImpact();
     Navigator.push(
       context,
       PageRouteBuilder(
         pageBuilder: (_, animation, _) => MatchDetailScreen(
           match: match,
           xpService: widget.xpService,
-          reactionsService: widget.reactionsService,
-          predictionService: widget.predictionService,
+          apiService: widget.apiService,
         ),
         transitionsBuilder: (_, animation, _, child) {
           final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
           return SlideTransition(
-            position: Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(curved),
+            position: Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero).animate(curved),
             child: FadeTransition(opacity: curved, child: child),
           );
         },
-        transitionDuration: const Duration(milliseconds: 320),
+        transitionDuration: const Duration(milliseconds: 280),
       ),
     );
   }
 
   void _closeSearch() {
-    setState(() {
-      _isSearching = false;
-      _searchQuery = '';
-      _searchController.clear();
-    });
+    setState(() { _isSearching = false; _searchQuery = ''; _searchController.clear(); });
+  }
+
+  PreferredSizeWidget? _buildTopTabs() {
+    switch (_bottomIndex) {
+      case 0:
+        return TabBar(
+          controller: _homeTabCtrl,
+          tabs: const [
+            Tab(icon: Icon(Icons.circle, size: 8, color: Colors.red), text: 'Live'),
+            Tab(text: 'Today'),
+          ],
+        );
+      case 1:
+        return TabBar(
+          controller: _matchesTabCtrl,
+          tabs: [
+            Tab(text: _dayTabLabel(-1)),
+            const Tab(text: 'Today'),
+            Tab(text: _dayTabLabel(1)),
+            const Tab(text: 'Standings'),
+          ],
+        );
+      case 2:
+        final favCount = widget.favoritesService.ids.length;
+        return TabBar(
+          controller: _exploreTabCtrl,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          tabs: [
+            Tab(
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.star_outline, size: 14),
+                const SizedBox(width: 4),
+                const Text('Favorites'),
+                if (favCount > 0) ...[
+                  const SizedBox(width: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(8)),
+                    child: Text('$favCount', style: const TextStyle(fontSize: 9, color: Colors.black, fontWeight: FontWeight.w800)),
+                  ),
+                ],
+              ]),
+            ),
+            const Tab(text: 'Teams'),
+            const Tab(text: 'Leagues'),
+            const Tab(text: 'Commentary'),
+          ],
+        );
+      default:
+        return null;
+    }
+  }
+
+  Widget _buildBody() {
+    final favIds = widget.favoritesService.ids;
+    switch (_bottomIndex) {
+      case 0:
+        return TabBarView(
+          controller: _homeTabCtrl,
+          children: [
+            _MatchesView(
+              title: 'Live', subtitle: 'Currently in play',
+              future: _liveFuture,
+              emptyMessage: 'The pitch is quiet right now.\nPull down to refresh.',
+              emptyTitle: 'No live matches', emptyIcon: Icons.sports_soccer,
+              onRefresh: _refreshCurrent,
+              onMatchTap: (m) => _openMatchDetail(context, m),
+              searchQuery: _searchQuery,
+            ),
+            _MatchesView(
+              title: 'Today', subtitle: "Today's fixtures",
+              future: _dayFutures[0] ?? _loadDay(0),
+              emptyMessage: 'No fixtures today.\nCheck back later or browse Matches.',
+              emptyTitle: 'Rest day', emptyIcon: Icons.today_outlined,
+              onRefresh: _refreshCurrent,
+              onMatchTap: (m) => _openMatchDetail(context, m),
+              searchQuery: _searchQuery,
+            ),
+          ],
+        );
+      case 1:
+        return TabBarView(
+          controller: _matchesTabCtrl,
+          children: [
+            _MatchesView(
+              title: _dayTabLabel(-1), subtitle: 'Results and scores',
+              future: _dayFutures[-1] ?? _loadDay(-1),
+              emptyMessage: 'No results for yesterday.',
+              emptyTitle: 'No results', emptyIcon: Icons.history,
+              onRefresh: _refreshCurrent,
+              onMatchTap: (m) => _openMatchDetail(context, m),
+              searchQuery: _searchQuery,
+            ),
+            _MatchesView(
+              title: 'Today', subtitle: "Today's fixtures",
+              future: _dayFutures[0] ?? _loadDay(0),
+              emptyMessage: 'No fixtures today.\nCheck back later.',
+              emptyTitle: 'Rest day', emptyIcon: Icons.today_outlined,
+              onRefresh: _refreshCurrent,
+              onMatchTap: (m) => _openMatchDetail(context, m),
+              searchQuery: _searchQuery,
+            ),
+            _MatchesView(
+              title: _dayTabLabel(1), subtitle: 'Upcoming fixtures',
+              future: _dayFutures[1] ?? _loadDay(1),
+              emptyMessage: 'No fixtures scheduled.',
+              emptyTitle: 'Nothing scheduled', emptyIcon: Icons.event_outlined,
+              onRefresh: _refreshCurrent,
+              onMatchTap: (m) => _openMatchDetail(context, m),
+              searchQuery: _searchQuery,
+            ),
+            _StandingsView(future: _standingsFuture, onRefresh: _refreshCurrent),
+          ],
+        );
+      case 2:
+        return TabBarView(
+          controller: _exploreTabCtrl,
+          children: [
+            _FavoritesView(
+              liveFuture: _liveFuture,
+              todayFuture: _dayFutures[0] ?? _loadDay(0),
+              yesterdayFuture: _dayFutures[-1] ?? _loadDay(-1),
+              teamsFuture: _teamsFuture,
+              favoriteTeamIds: favIds,
+              onRefresh: _refreshCurrent,
+              onMatchTap: (m) => _openMatchDetail(context, m),
+            ),
+            _TeamsView(
+              future: _teamsFuture, onRefresh: _refreshCurrent,
+              favoritesService: widget.favoritesService, searchQuery: _searchQuery,
+              onTeamTap: (team) => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => TeamDetailScreen(team: team, apiService: widget.apiService, newsService: widget.newsService),
+              )),
+            ),
+            _LeaguesView(
+              future: _leaguesFuture, onRefresh: _refreshCurrent, searchQuery: _searchQuery,
+              onLeagueTap: (league) => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => LeagueDetailScreen(league: league, apiService: widget.apiService),
+              )),
+            ),
+            _CommentaryFeedView(
+              future: _commentaryFuture, onRefresh: _refreshCurrent,
+              onMatchTap: (match) => _openMatchDetail(context, match),
+            ),
+          ],
+        );
+      case 3:
+        return QuizScreen(xpService: widget.xpService);
+      case 4:
+        return ProfileScreen(xpService: widget.xpService, goalAlertsService: widget.goalAlertsService);
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final favIds = widget.favoritesService.ids;
-
+    final topTabs = _buildTopTabs();
     return Scaffold(
       appBar: AppBar(
         leading: _isSearching
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _closeSearch,
-              )
+            ? IconButton(icon: const Icon(Icons.arrow_back), onPressed: _closeSearch)
             : null,
         title: _isSearching
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                onChanged: (q) =>
-                    setState(() => _searchQuery = q.toLowerCase().trim()),
+                onChanged: (q) => setState(() => _searchQuery = q.toLowerCase().trim()),
                 decoration: const InputDecoration(
                   hintText: 'Search teams, leagues...',
                   border: InputBorder.none,
@@ -209,172 +409,105 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 style: const TextStyle(color: Colors.white, fontSize: 16),
               )
-            : Image.asset(
-                'assets/logo.png',
-                height: 36,
-              ),
+            : Image.asset('assets/logo.png', height: 36),
         actions: [
-          if (_isSearching && _searchQuery.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: () => setState(() {
-                _searchQuery = '';
-                _searchController.clear();
-              }),
-            )
-          else if (!_isSearching)
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () => setState(() => _isSearching = true),
-            ),
+          if (_bottomIndex < 3) ...[
+            if (_isSearching && _searchQuery.isNotEmpty)
+              IconButton(icon: const Icon(Icons.clear), onPressed: () => setState(() { _searchQuery = ''; _searchController.clear(); }))
+            else if (!_isSearching)
+              IconButton(icon: const Icon(Icons.search), onPressed: () => setState(() => _isSearching = true)),
+          ],
           IconButton(
-            icon: Icon(widget.themeMode == ThemeMode.dark
-                ? Icons.light_mode
-                : Icons.dark_mode),
+            icon: Icon(widget.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
             onPressed: widget.onToggleTheme,
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          tabs: [
-            const Tab(
-              icon: Icon(Icons.circle, size: 10, color: Colors.red),
-              text: 'Live',
-            ),
-            const Tab(text: 'Today'),
-            const Tab(text: 'Yesterday'),
-            const Tab(text: 'Tomorrow'),
-            const Tab(text: 'Standings'),
-            const Tab(text: 'Teams'),
-            const Tab(text: 'Leagues'),
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.star, size: 14),
-                  const SizedBox(width: 4),
-                  const Text('Favorites'),
-                  if (favIds.isNotEmpty) ...[
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${favIds.length}',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const Tab(
-              icon: Icon(Icons.quiz_outlined, size: 14),
-              text: 'Quiz',
-            ),
-            const Tab(
-              icon: Icon(Icons.emoji_events, size: 14),
-              text: 'Profile',
-            ),
-          ],
-        ),
+        bottom: topTabs,
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _MatchesView(
-            title: 'Live Matches',
-            subtitle: 'Currently in play',
-            future: _liveFuture,
-            emptyMessage: 'No live matches right now.',
-            onRefresh: () => _refreshTab(0),
-            onMatchTap: (m) => _openMatchDetail(context, m),
-            searchQuery: _searchQuery,
-            reactionsService: widget.reactionsService,
-          ),
-          _MatchesView(
-            title: 'Today',
-            subtitle: "Today's football fixtures",
-            future: _todayFuture,
-            emptyMessage: 'No matches scheduled for today.',
-            onRefresh: () => _refreshTab(1),
-            onMatchTap: (m) => _openMatchDetail(context, m),
-            searchQuery: _searchQuery,
-            reactionsService: widget.reactionsService,
-          ),
-          _MatchesView(
-            title: 'Yesterday',
-            subtitle: 'Completed fixtures and results',
-            future: _yesterdayFuture,
-            emptyMessage: 'No matches found for yesterday.',
-            onRefresh: () => _refreshTab(2),
-            onMatchTap: (m) => _openMatchDetail(context, m),
-            searchQuery: _searchQuery,
-            reactionsService: widget.reactionsService,
-          ),
-          _MatchesView(
-            title: 'Tomorrow',
-            subtitle: 'Upcoming fixtures',
-            future: _tomorrowFuture,
-            emptyMessage: 'No matches scheduled for tomorrow.',
-            onRefresh: () => _refreshTab(3),
-            onMatchTap: (m) => _openMatchDetail(context, m),
-            searchQuery: _searchQuery,
-            reactionsService: widget.reactionsService,
-          ),
-          _StandingsView(
-            future: _standingsFuture,
-            onRefresh: () => _refreshTab(4),
-          ),
-          _TeamsView(
-            future: _teamsFuture,
-            onRefresh: () => _refreshTab(5),
-            favoritesService: widget.favoritesService,
-            searchQuery: _searchQuery,
-            onTeamTap: (team) => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    TeamDetailScreen(team: team, apiService: widget.apiService),
-              ),
+          if (widget.apiService.isOffline)
+            Container(
+              width: double.infinity,
+              color: Colors.orange.shade800,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+              child: const Row(children: [
+                Icon(Icons.cloud_off, size: 14, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Offline — showing cached data',
+                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+              ]),
             ),
-          ),
-          _LeaguesView(
-            future: _leaguesFuture,
-            onRefresh: () => _refreshTab(6),
-            searchQuery: _searchQuery,
-            onLeagueTap: (league) => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    LeagueDetailScreen(league: league, apiService: widget.apiService),
-              ),
+          if (widget.goalAlertsService.enabled)
+            Container(
+              width: double.infinity,
+              color: Colors.green.shade700,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+              child: Row(children: [
+                const Icon(Icons.sports_soccer, size: 14, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(child: Text(
+                  widget.favoritesService.ids.isEmpty
+                      ? 'Goal alerts are on — add favorite teams to receive notifications.'
+                      : 'Goal alerts are active for your favorite teams.',
+                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                )),
+              ]),
             ),
-          ),
-          _FavoritesView(
-            liveFuture: _liveFuture,
-            todayFuture: _todayFuture,
-            yesterdayFuture: _yesterdayFuture,
-            teamsFuture: _teamsFuture,
-            favoriteTeamIds: favIds,
-            onRefresh: () => _refreshTab(7),
-            onMatchTap: (m) => _openMatchDetail(context, m),
-          ),
-          QuizScreen(xpService: widget.xpService),
-          ProfileScreen(xpService: widget.xpService),
+          Expanded(child: _buildBody()),
         ],
+      ),
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1E1E1E)
+                  : const Color(0xFFE0E0E0),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: NavigationBar(
+        selectedIndex: _bottomIndex,
+        onDestinationSelected: (i) {
+          HapticFeedback.selectionClick();
+          if (_isSearching) _closeSearch();
+          setState(() => _bottomIndex = i);
+          if (i == 0 && _homeTabCtrl.index == 0) {
+            _startLiveTimer();
+          } else {
+            _liveRefreshTimer?.cancel();
+          }
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.sports_soccer_outlined),
+            selectedIcon: Icon(Icons.sports_soccer),
+            label: 'Matches',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.explore_outlined),
+            selectedIcon: Icon(Icons.explore),
+            label: 'Explore',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.quiz_outlined),
+            selectedIcon: Icon(Icons.quiz),
+            label: 'Quiz',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        ),
       ),
     );
   }
@@ -389,19 +522,21 @@ class _MatchesView extends StatelessWidget {
     required this.future,
     required this.emptyMessage,
     required this.onRefresh,
+    this.emptyTitle = 'Nothing here yet',
+    this.emptyIcon = Icons.sports_soccer_outlined,
     this.onMatchTap,
     this.searchQuery = '',
-    this.reactionsService,
   });
 
   final String title;
   final String subtitle;
   final Future<List<FootballMatch>> future;
   final String emptyMessage;
+  final String emptyTitle;
+  final IconData emptyIcon;
   final Future<void> Function() onRefresh;
   final void Function(FootballMatch)? onMatchTap;
   final String searchQuery;
-  final ReactionsService? reactionsService;
 
   @override
   Widget build(BuildContext context) {
@@ -445,10 +580,10 @@ class _MatchesView extends StatelessWidget {
                     SectionHeader(title: title, subtitle: subtitle),
                     const SizedBox(height: 24),
                     EmptyState(
-                      icon: Icons.sports_soccer_outlined,
+                      icon: searchQuery.isNotEmpty ? Icons.search_off : emptyIcon,
                       title: searchQuery.isNotEmpty
                           ? 'No matches found'
-                          : 'Nothing here yet',
+                          : emptyTitle,
                       message: searchQuery.isNotEmpty
                           ? 'No matches for "$searchQuery"'
                           : emptyMessage,
@@ -465,21 +600,485 @@ class _MatchesView extends StatelessWidget {
                       return SectionHeader(
                         title: title,
                         subtitle: subtitle,
-                        trailing: Text(
-                          '${matches.length} match${matches.length == 1 ? '' : 'es'}',
-                        ),
+                        trailing: _MatchCountBadge(count: matches.length),
                       );
                     }
                     final match = matches[index - 1];
                     return MatchCard(
                       match: match,
-                      onTap: onMatchTap != null ? () => onMatchTap!(match) : null,
-                      reactionsService: reactionsService,
+                      onTap: onMatchTap != null
+                          ? () => onMatchTap!(match)
+                          : null,
                     );
                   },
                 ),
         );
       },
+    );
+  }
+}
+
+class _MatchCountBadge extends StatelessWidget {
+  const _MatchCountBadge({required this.count});
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Text(
+        '$count ${count == 1 ? 'match' : 'matches'}',
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
+  }
+}
+
+class _FanZoneView extends StatefulWidget {
+  const _FanZoneView({
+    required this.communityService,
+    required this.favoritesService,
+    required this.onRefresh,
+  });
+
+  final CommunityService communityService;
+  final FavoritesService favoritesService;
+  final Future<void> Function() onRefresh;
+
+  @override
+  State<_FanZoneView> createState() => _FanZoneViewState();
+}
+
+class _FanZoneViewState extends State<_FanZoneView> {
+  final TextEditingController _messageController = TextEditingController();
+  bool _isPosting = false;
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _postMessage() async {
+    final message = _messageController.text.trim();
+    if (message.isEmpty) return;
+    setState(() => _isPosting = true);
+    await widget.communityService.addPost(message);
+    _messageController.clear();
+    setState(() => _isPosting = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasFavorites = widget.favoritesService.ids.isNotEmpty;
+    return RefreshIndicator(
+      onRefresh: widget.onRefresh,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          const SectionHeader(
+            title: 'Fan Zone',
+            subtitle: 'Community chat, news, and predictions.',
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Community Pulse',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Feel the excitement with trending predictions, live reactions, and team news updates.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _LeaderboardCard(
+            leaderboard: widget.communityService.getLeaderboard(),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Team News',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...CommunityService.getNewsForTeam(
+                    hasFavorites ? 'Your Favorite Team' : 'Football',
+                  ).map(
+                    (news) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            news.title,
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            news.summary,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '${news.publishedAt.hour.toString().padLeft(2, '0')}:${news.publishedAt.minute.toString().padLeft(2, '0')} • ${news.publishedAt.day}/${news.publishedAt.month}/${news.publishedAt.year}',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Fan Chat',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ListenableBuilder(
+                    listenable: widget.communityService,
+                    builder: (context, _) {
+                      final posts = widget.communityService.posts;
+                      if (posts.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Text(
+                            'Be the first to start the conversation.',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        );
+                      }
+                      return Column(
+                        children: posts.take(4).map((post) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CircleAvatar(
+                                  radius: 16,
+                                  child: Text(post.user.characters.first),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            post.user,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${post.timestamp.hour.toString().padLeft(2, '0')}:${post.timestamp.minute.toString().padLeft(2, '0')}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall
+                                                ?.copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(post.message),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          minLines: 1,
+                          maxLines: 4,
+                          decoration: const InputDecoration(
+                            hintText: 'Share a fan thought...',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      FilledButton(
+                        onPressed: _isPosting ? null : _postMessage,
+                        child: _isPosting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.send),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
+class _CommentaryFeedView extends StatelessWidget {
+  const _CommentaryFeedView({
+    required this.future,
+    required this.onRefresh,
+    required this.onMatchTap,
+  });
+
+  final Future<List<MatchCommentary>> future;
+  final Future<void> Function() onRefresh;
+  final void Function(FootballMatch) onMatchTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<MatchCommentary>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const LoadingView(message: 'Loading live commentary...');
+        }
+        if (snapshot.hasError) {
+          return ErrorView(
+            message: snapshot.error.toString(),
+            onRetry: onRefresh,
+          );
+        }
+
+        final commentary = snapshot.data ?? [];
+        if (commentary.isEmpty) {
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: const [
+                SectionHeader(
+                  title: 'Live Commentary',
+                  subtitle: 'Tracking every moment from the pitch.',
+                ),
+                SizedBox(height: 24),
+                EmptyState(
+                  icon: Icons.chat_bubble_outline,
+                  title: 'No live commentary yet',
+                  message:
+                      'Check back when more matches start or refresh for updates.',
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: onRefresh,
+          child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemCount: commentary.length,
+            itemBuilder: (context, index) {
+              final item = commentary[index];
+              return Card(
+                child: InkWell(
+                  onTap: () => onMatchTap(item.match),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(item.badge, size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                item.title,
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                            Text(
+                              '${item.timestamp.hour.toString().padLeft(2, '0')}:${item.timestamp.minute.toString().padLeft(2, '0')}',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          item.description,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _LeaderboardCard extends StatelessWidget {
+  const _LeaderboardCard({required this.leaderboard});
+
+  final List<LeaderboardEntry> leaderboard;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Prediction Leaderboard',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            ...leaderboard.take(5).map((entry) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: entry.isYou
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                      child: Text(
+                        entry.place.toString(),
+                        style: TextStyle(
+                          color: entry.isYou ? Colors.white : null,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            entry.name,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          if (entry.subtitle != null)
+                            Text(
+                              entry.subtitle!,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '${entry.score} pts',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1136,9 +1735,28 @@ class _TeamsView extends StatelessWidget {
           );
         }
         final all = snapshot.data ?? <TeamItem>[];
+        // Famous clubs first, then alphabetical
+        const famousRank = [
+          'real madrid', 'barcelona', 'manchester city', 'liverpool',
+          'paris saint-germain', 'psg', 'bayern', 'chelsea', 'arsenal',
+          'manchester united', 'juventus', 'inter', 'ac milan', 'milan',
+          'atletico', 'dortmund', 'napoli', 'tottenham', 'ajax',
+          'benfica', 'porto', 'sevilla', 'roma', 'lazio',
+          'al nassr', 'al hilal', 'marseille', 'monaco',
+        ];
+        int teamRank(TeamItem t) {
+          final name = (t.team?.name ?? '').toLowerCase();
+          final idx = famousRank.indexWhere((k) => name.contains(k));
+          return idx == -1 ? famousRank.length + 1 : idx;
+        }
+        final sorted = [...all]..sort((a, b) {
+          final r = teamRank(a).compareTo(teamRank(b));
+          if (r != 0) return r;
+          return (a.team?.name ?? '').compareTo(b.team?.name ?? '');
+        });
         final teams = searchQuery.isEmpty
-            ? all
-            : all
+            ? sorted
+            : sorted
                   .where(
                     (t) => (t.team?.name ?? '').toLowerCase().contains(
                       searchQuery,
@@ -1212,15 +1830,19 @@ class _TeamsView extends StatelessWidget {
                               ? 'Team details unavailable'
                               : subtitleParts.join(' • '),
                         ),
-                        onTap: onTeamTap != null ? () => onTeamTap!(team) : null,
+                        onTap: onTeamTap != null
+                            ? () => onTeamTap!(team)
+                            : null,
                         trailing: teamId != null
                             ? IconButton(
                                 icon: Icon(
                                   isFav ? Icons.star : Icons.star_border,
                                   color: isFav ? Colors.amber : Colors.white38,
                                 ),
-                                onPressed: () =>
-                                    favoritesService.toggle(teamId),
+                                onPressed: () {
+                                  HapticFeedback.mediumImpact();
+                                  favoritesService.toggle(teamId);
+                                },
                               )
                             : null,
                       ),
@@ -1341,7 +1963,9 @@ class _LeaguesView extends StatelessWidget {
                               ? 'Competition details unavailable'
                               : subtitleParts.join(' • '),
                         ),
-                        onTap: onLeagueTap != null ? () => onLeagueTap!(league) : null,
+                        onTap: onLeagueTap != null
+                            ? () => onLeagueTap!(league)
+                            : null,
                         trailing: currentSeason?.current == true
                             ? const Icon(Icons.check_circle_outline)
                             : null,

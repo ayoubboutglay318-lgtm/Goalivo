@@ -6,7 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/favorites_service.dart';
+import 'services/community_service.dart';
+import 'services/commentary_service.dart';
 import 'services/football_api_service.dart';
+import 'services/goal_alerts_service.dart';
+import 'services/news_service.dart';
 import 'services/notification_service.dart';
 import 'services/prediction_service.dart';
 import 'services/reactions_service.dart';
@@ -18,33 +22,64 @@ void main() async {
   final xp = XpService();
   final reactions = ReactionsService();
   final predictions = PredictionService();
+  final apiService = FootballApiService();
+  final newsService = NewsService();
+  final commentaryService = CommentaryService(apiService: apiService);
+  final goalAlerts = GoalAlertsService(
+    favoritesService: favs,
+    apiService: apiService,
+  );
+  final community = CommunityService(
+    xpService: xp,
+    predictionService: predictions,
+  );
+
   await Future.wait([
     favs.load(),
     reactions.load(),
     predictions.load(),
     xp.onAppOpen(),
+    community.load(),
   ]);
-  NotificationService.instance.init();
-  runApp(FootbalLiveApp(
-    favoritesService: favs,
-    xpService: xp,
-    reactionsService: reactions,
-    predictionService: predictions,
-  ));
+  try { await NotificationService.instance.init(); } catch (_) {}
+  await goalAlerts.load();
+  runApp(
+    FootbalLiveApp(
+      apiService: apiService,
+      favoritesService: favs,
+      xpService: xp,
+      reactionsService: reactions,
+      predictionService: predictions,
+      goalAlertsService: goalAlerts,
+      communityService: community,
+      newsService: newsService,
+      commentaryService: commentaryService,
+    ),
+  );
 }
 
 class FootbalLiveApp extends StatefulWidget {
   const FootbalLiveApp({
     super.key,
+    required this.apiService,
     required this.favoritesService,
     required this.xpService,
     required this.reactionsService,
     required this.predictionService,
+    required this.goalAlertsService,
+    required this.communityService,
+    required this.newsService,
+    required this.commentaryService,
   });
+  final FootballApiService apiService;
   final FavoritesService favoritesService;
   final XpService xpService;
   final ReactionsService reactionsService;
   final PredictionService predictionService;
+  final GoalAlertsService goalAlertsService;
+  final CommunityService communityService;
+  final NewsService newsService;
+  final CommentaryService commentaryService;
 
   @override
   State<FootbalLiveApp> createState() => _FootbalLiveAppState();
@@ -89,19 +124,30 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
   }
 
   ThemeData _buildDarkTheme() {
-    final base = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF00C853),
-      brightness: Brightness.dark,
-    ).copyWith(
-      surface: const Color(0xFF080808),
-      surfaceContainerHighest: const Color(0xFF141414),
-      primary: const Color(0xFF00C853),
-      onPrimary: Colors.black,
-    );
+    final base =
+        ColorScheme.fromSeed(
+          seedColor: const Color(0xFF00C853),
+          brightness: Brightness.dark,
+        ).copyWith(
+          surface: const Color(0xFF080808),
+          surfaceContainerHighest: const Color(0xFF141414),
+          primary: const Color(0xFF00C853),
+          onPrimary: Colors.black,
+        );
     return ThemeData(
       colorScheme: base,
       useMaterial3: true,
-      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
+        displaySmall: GoogleFonts.inter(fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: -1.0, color: Colors.white),
+        headlineMedium: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.5, color: Colors.white),
+        titleLarge: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: -0.3, color: Colors.white),
+        titleMedium: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: -0.2, color: Colors.white),
+        titleSmall: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0, color: Colors.white),
+        bodyMedium: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400, color: Colors.white70),
+        bodySmall: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.white54),
+        labelLarge: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.1),
+        labelSmall: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 0.5),
+      ),
       cardTheme: CardThemeData(
         color: const Color(0xFF111111),
         elevation: 0,
@@ -121,15 +167,55 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
         indicatorColor: const Color(0xFF00C853),
         labelColor: const Color(0xFF00C853),
         unselectedLabelColor: Colors.white38,
-        labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12),
-        unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w500, fontSize: 12),
+        labelStyle: GoogleFonts.inter(
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+        unselectedLabelStyle: GoogleFonts.inter(
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        ),
       ),
       scaffoldBackgroundColor: const Color(0xFF080808),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           textStyle: GoogleFonts.inter(fontWeight: FontWeight.w700),
         ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: const Color(0xFF0D0D0D),
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.black54,
+        elevation: 0,
+        height: 64,
+        indicatorColor: const Color(0xFF00C853).withValues(alpha: 0.18),
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(size: 26, color: Color(0xFF00C853));
+          }
+          return const IconThemeData(size: 24, color: Color(0xFF666666));
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF00C853),
+            );
+          }
+          return GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF666666),
+          );
+        }),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
     );
   }
@@ -173,27 +259,63 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
         ),
       ),
       scaffoldBackgroundColor: const Color(0xFFF6F6F6),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.black12,
+        elevation: 0,
+        height: 64,
+        indicatorColor: const Color(0xFF1B5E20).withValues(alpha: 0.12),
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(size: 26, color: Color(0xFF1B5E20));
+          }
+          return const IconThemeData(size: 24, color: Color(0xFF999999));
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1B5E20),
+            );
+          }
+          return const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF999999),
+          );
+        }),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final apiService = FootballApiService();
-
     return MaterialApp(
-      title: 'Kick Ora',
+      title: 'KickOra',
       debugShowCheckedModeBanner: false,
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),
       themeMode: _themeMode,
       home: _showOnboarding
-          ? OnboardingScreen(onDone: () => setState(() => _showOnboarding = false))
+          ? OnboardingScreen(
+              onDone: () => setState(() => _showOnboarding = false),
+            )
           : HomeScreen(
-              apiService: apiService,
+              apiService: widget.apiService,
               favoritesService: widget.favoritesService,
               xpService: widget.xpService,
               reactionsService: widget.reactionsService,
               predictionService: widget.predictionService,
+              goalAlertsService: widget.goalAlertsService,
+              communityService: widget.communityService,
+              newsService: widget.newsService,
+              commentaryService: widget.commentaryService,
               themeMode: _themeMode,
               onToggleTheme: _toggleThemeMode,
             ),

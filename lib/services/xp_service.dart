@@ -43,25 +43,29 @@ class Achievement {
     required this.description,
     required this.emoji,
     required this.xpReward,
+    this.category = 'Other',
+    this.maxProgress = 0,
   });
   final String id;
   final String title;
   final String description;
   final String emoji;
   final int xpReward;
+  final String category;
+  final int maxProgress; // 0 = no progress bar shown
 
   static const List<Achievement> all = [
-    Achievement(id: 'first_match',    title: 'First Kick',     description: 'Opened your first match',         emoji: '🎯', xpReward: 20),
-    Achievement(id: 'match_5',        title: 'Match Day',      description: 'Viewed 5 match details',          emoji: '📺', xpReward: 30),
-    Achievement(id: 'match_25',       title: 'Regular Fan',    description: 'Viewed 25 match details',         emoji: '🎫', xpReward: 75),
-    Achievement(id: 'ai_first',       title: 'AI Analyst',     description: 'Used AI chat for the first time', emoji: '🤖', xpReward: 25),
-    Achievement(id: 'ai_10',          title: 'Data Nerd',      description: 'Used AI chat 10 times',           emoji: '🧠', xpReward: 60),
-    Achievement(id: 'streak_3',       title: 'On Fire',        description: '3-day login streak',              emoji: '🔥', xpReward: 50),
-    Achievement(id: 'streak_7',       title: 'Dedicated',      description: '7-day login streak',              emoji: '⚡', xpReward: 100),
-    Achievement(id: 'streak_30',      title: 'Die-Hard Fan',   description: '30-day login streak',             emoji: '💎', xpReward: 300),
-    Achievement(id: 'level_3',        title: 'Ultra Fan',      description: 'Reached level 3: Ultra',          emoji: '🚀', xpReward: 0),
-    Achievement(id: 'level_5',        title: 'Legend Status',  description: 'Reached level 5: Legend',         emoji: '🏆', xpReward: 0),
-    Achievement(id: 'favorite_team',  title: 'Team Loyalist',  description: 'Added a favourite team',          emoji: '⭐', xpReward: 15),
+    Achievement(id: 'first_match',   title: 'First Kick',    description: 'Open your first match',      emoji: '🎯', xpReward: 20,  category: 'Engagement', maxProgress: 1),
+    Achievement(id: 'match_5',       title: 'Match Day',     description: 'View 5 match details',       emoji: '📺', xpReward: 30,  category: 'Engagement', maxProgress: 5),
+    Achievement(id: 'match_25',      title: 'Regular Fan',   description: 'View 25 match details',      emoji: '🎫', xpReward: 75,  category: 'Engagement', maxProgress: 25),
+    Achievement(id: 'streak_3',      title: 'On Fire',       description: '3-day login streak',         emoji: '🔥', xpReward: 50,  category: 'Loyalty',    maxProgress: 3),
+    Achievement(id: 'streak_7',      title: 'Dedicated',     description: '7-day login streak',         emoji: '⚡', xpReward: 100, category: 'Loyalty',    maxProgress: 7),
+    Achievement(id: 'streak_30',     title: 'Die-Hard Fan',  description: '30-day login streak',        emoji: '💎', xpReward: 300, category: 'Loyalty',    maxProgress: 30),
+    Achievement(id: 'level_3',       title: 'Ultra Fan',     description: 'Reach level 3: Ultra',       emoji: '🚀', xpReward: 0,   category: 'Progression', maxProgress: 3),
+    Achievement(id: 'level_5',       title: 'Legend Status', description: 'Reach level 5: Legend',      emoji: '🏆', xpReward: 0,   category: 'Progression', maxProgress: 5),
+    Achievement(id: 'favorite_team', title: 'Team Loyalist', description: 'Add a favourite team',       emoji: '⭐', xpReward: 15,  category: 'Explorer',   maxProgress: 1),
+    Achievement(id: 'ai_first',      title: 'Explorer',      description: 'Discover all app sections',  emoji: '🗺️', xpReward: 25,  category: 'Explorer',   maxProgress: 0),
+    Achievement(id: 'ai_10',         title: 'Data Nerd',     description: 'Track 10 different matches', emoji: '🧠', xpReward: 60,  category: 'Explorer',   maxProgress: 0),
   ];
 
   static Achievement? byId(String id) {

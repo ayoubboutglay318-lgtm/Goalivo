@@ -45,6 +45,7 @@ class PredictionService extends ChangeNotifier {
   bool _loaded = false;
 
   Prediction? predictionFor(int fixtureId) => _predictions[fixtureId];
+  Iterable<Prediction> get allPredictions => _predictions.values;
 
   Future<void> load() async {
     if (_loaded) return;
@@ -55,7 +56,9 @@ class PredictionService extends ChangeNotifier {
         final val = prefs.getString(key);
         if (id != null && val != null) {
           final p = Prediction._decode(id, val);
-          if (p != null) { _predictions[id] = p; }
+          if (p != null) {
+            _predictions[id] = p;
+          }
         }
       }
     }
@@ -64,7 +67,11 @@ class PredictionService extends ChangeNotifier {
   }
 
   Future<void> savePrediction(int fixtureId, int home, int away) async {
-    final p = Prediction(fixtureId: fixtureId, homeGoals: home, awayGoals: away);
+    final p = Prediction(
+      fixtureId: fixtureId,
+      homeGoals: home,
+      awayGoals: away,
+    );
     _predictions[fixtureId] = p;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('pred_$fixtureId', p._encode());
@@ -80,8 +87,7 @@ class PredictionService extends ChangeNotifier {
     final p = _predictions[fixtureId];
     if (p == null || p.checkedResult) return 0;
 
-    final correctScore =
-        p.homeGoals == actualHome && p.awayGoals == actualAway;
+    final correctScore = p.homeGoals == actualHome && p.awayGoals == actualAway;
     final predictedResult = p.homeGoals.compareTo(p.awayGoals);
     final actualResult = actualHome.compareTo(actualAway);
     final correctResult = predictedResult == actualResult;

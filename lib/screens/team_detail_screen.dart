@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../models/match_models.dart';
 import '../models/team_models.dart';
+import '../services/community_service.dart';
 import '../services/football_api_service.dart';
+import '../services/news_service.dart';
+import '../services/team_plan_service.dart';
 import '../widgets/match_card.dart';
 import 'match_detail_screen.dart';
 
@@ -11,10 +14,12 @@ class TeamDetailScreen extends StatefulWidget {
     super.key,
     required this.team,
     required this.apiService,
+    required this.newsService,
   });
 
   final TeamItem team;
   final FootballApiService apiService;
+  final NewsService newsService;
 
   @override
   State<TeamDetailScreen> createState() => _TeamDetailScreenState();
@@ -22,11 +27,13 @@ class TeamDetailScreen extends StatefulWidget {
 
 class _TeamDetailScreenState extends State<TeamDetailScreen> {
   late Future<List<FootballMatch>> _matchesFuture;
+  late Future<List<SportsNewsArticle>> _newsFuture;
 
   @override
   void initState() {
     super.initState();
     _matchesFuture = _loadMatches();
+    _newsFuture = widget.newsService.getTeamNews(widget.team.team?.name ?? '');
   }
 
   Future<List<FootballMatch>> _loadMatches() async {
@@ -79,15 +86,113 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                 venue: venue,
               ),
             ),
-            title: Text(info?.name ?? 'Team', style: const TextStyle(fontSize: 14)),
+            title: Text(
+              info?.name ?? 'Team',
+              style: const TextStyle(fontSize: 14),
+            ),
           ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-              child: Text('Recent & Upcoming Matches',
-                  style:
-                      theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+              child: Text(
+                'Recent & Upcoming Matches',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Team News',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  FutureBuilder<List<SportsNewsArticle>>(
+                    future: _newsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const SizedBox(
+                          height: 120,
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      final articles = snapshot.data;
+                      final useFallback =
+                          snapshot.hasError ||
+                          articles == null ||
+                          articles.isEmpty;
+                      final newsList = useFallback
+                          ? CommunityService.getNewsForTeam(
+                                  info?.name ?? 'Team',
+                                )
+                                .map(
+                                  (article) => SportsNewsArticle(
+                                    title: article.title,
+                                    description: article.summary,
+                                    source: 'KickOra Fan Zone',
+                                    publishedAt: article.publishedAt,
+                                  ),
+                                )
+                                .toList()
+                          : articles;
+
+                      return Column(
+                        children: newsList.map((article) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(14),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      article.title,
+                                      style: theme.textTheme.titleSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      article.description,
+                                      style: theme.textTheme.bodySmall,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      article.source,
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _buildTeamPlanSection(
+            TeamPlanService.getPlanForTeam(info?.name ?? 'Team'),
+            theme,
           ),
           FutureBuilder<List<FootballMatch>>(
             future: _matchesFuture,
@@ -102,9 +207,12 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text('Failed to load matches',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant)),
+                      child: Text(
+                        'Failed to load matches',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ),
                   ),
                 );
@@ -118,12 +226,18 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.sports_soccer_outlined,
-                              size: 48, color: theme.colorScheme.onSurfaceVariant),
+                          Icon(
+                            Icons.sports_soccer_outlined,
+                            size: 48,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                           const SizedBox(height: 12),
-                          Text('No recent or upcoming matches',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant)),
+                          Text(
+                            'No recent or upcoming matches',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -142,7 +256,8 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => MatchDetailScreen(match: match)),
+                          builder: (_) => MatchDetailScreen(match: match),
+                        ),
                       ),
                     );
                   },
@@ -154,6 +269,115 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
       ),
     );
   }
+
+  Widget _buildTeamPlanSection(TeamFormation plan, ThemeData theme) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Team Plan & Formation',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Projected formation',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        Chip(
+                          label: Text(plan.formation),
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(plan.description, style: theme.textTheme.bodyMedium),
+                    const SizedBox(height: 14),
+                    ...plan.lineup.map(
+                      (player) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 64,
+                              child: Text(
+                                player.position,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    player.name,
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    player.role,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (plan.notes.isNotEmpty) ...[
+                      const Divider(height: 24),
+                      Text(
+                        'Tactical notes',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...plan.notes.map(
+                        (note) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            '• $note',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  
 }
 
 class _TeamHeader extends StatelessWidget {
@@ -176,7 +400,10 @@ class _TeamHeader extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [theme.colorScheme.surfaceContainerHighest, theme.colorScheme.surface],
+          colors: [
+            theme.colorScheme.surfaceContainerHighest,
+            theme.colorScheme.surface,
+          ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -193,28 +420,39 @@ class _TeamHeader extends StatelessWidget {
               children: [
                 Text(
                   info?.name ?? 'Team',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (country.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(country,
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  Text(
+                    country,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
                 if (founded != null) ...[
                   const SizedBox(height: 2),
-                  Text('Founded $founded',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  Text(
+                    'Founded $founded',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
                 if ((venue?.name ?? '').isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.stadium_outlined,
-                          size: 14, color: theme.colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.stadium_outlined,
+                        size: 14,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -223,8 +461,9 @@ class _TeamHeader extends StatelessWidget {
                             if ((venue!.city ?? '').isNotEmpty) venue!.city!,
                           ].join(', '),
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ],
@@ -234,13 +473,17 @@ class _TeamHeader extends StatelessWidget {
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      Icon(Icons.people_outline,
-                          size: 14, color: theme.colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.people_outline,
+                        size: 14,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${_formatCapacity(venue!.capacity!)} capacity',
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -283,12 +526,18 @@ class _TeamLogo extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(color: Color(0xFF2A2A2A), shape: BoxShape.circle),
+      decoration: const BoxDecoration(
+        color: Color(0xFF2A2A2A),
+        shape: BoxShape.circle,
+      ),
       alignment: Alignment.center,
       child: Text(
         name.isNotEmpty ? name[0].toUpperCase() : '?',
         style: TextStyle(
-            fontSize: size * 0.38, fontWeight: FontWeight.bold, color: Colors.white),
+          fontSize: size * 0.38,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       ),
     );
   }

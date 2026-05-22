@@ -135,10 +135,10 @@ class _ResultBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (pred.wasCorrectScore) {
-      return _badge('⚽ Exact! +50 XP', Colors.green);
+      return _badge('⚽ Exact score!', Colors.green);
     }
     if (pred.wasCorrectResult) {
-      return _badge('✅ Correct result +20 XP', Colors.teal);
+      return _badge('✅ Correct result', Colors.teal);
     }
     return _badge('❌ Wrong', Colors.red);
   }

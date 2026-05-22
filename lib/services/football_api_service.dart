@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/api_response.dart';
@@ -7,61 +8,121 @@ import '../models/league_models.dart';
 import '../models/match_models.dart';
 import '../models/standing_models.dart';
 import '../models/team_models.dart';
+import 'cache_service.dart';
 
-class FootballApiService {
-  FootballApiService({http.Client? client}) : _client = client ?? http.Client();
+class FootballApiService extends ChangeNotifier {
+  FootballApiService({http.Client? client})
+      : _client = client ?? http.Client();
 
   static const String baseUrl = 'https://api-koora-production.up.railway.app';
 
   final http.Client _client;
+  final CacheService _cache = CacheService();
 
-  Future<List<FootballMatch>> getLiveMatches() async {
-    final response = await _get('/api/football/live',
-        (data) => _parseList(data, FootballMatch.fromJson));
-    return response.data;
+  bool _isOffline = false;
+  DateTime? _offlineSince;
+
+  bool get isOffline => _isOffline;
+  DateTime? get offlineSince => _offlineSince;
+
+  void _setOffline(bool offline) {
+    if (_isOffline == offline) return;
+    _isOffline = offline;
+    _offlineSince = offline ? DateTime.now() : null;
+    notifyListeners();
   }
 
-  Future<List<FootballMatch>> getTodayMatches() async {
-    final response = await _get('/api/football/today',
-        (data) => _parseList(data, FootballMatch.fromJson));
-    return response.data;
+  Future<List<FootballMatch>> getLiveMatches() async =>
+      _cachedGet('live', '/api/football/live', FootballMatch.fromJson);
+
+  Future<List<FootballMatch>> getTodayMatches() async =>
+      _cachedGet('today', '/api/football/today', FootballMatch.fromJson);
+
+  Future<List<FootballMatch>> getYesterdayMatches() async =>
+      _cachedGet('yesterday', '/api/football/yesterday', FootballMatch.fromJson);
+
+  Future<List<FootballMatch>> getTomorrowMatches() async =>
+      _cachedGet('tomorrow', '/api/football/tomorrow', FootballMatch.fromJson);
+
+  Future<List<FootballMatch>> getMatchesByDate(DateTime date) async {
+    final d = date.toLocal();
+    final now = DateTime.now().toLocal();
+    final offset = DateTime(d.year, d.month, d.day)
+        .difference(DateTime(now.year, now.month, now.day))
+        .inDays;
+    if (offset == 0) return getTodayMatches();
+    if (offset == -1) return getYesterdayMatches();
+    if (offset == 1) return getTomorrowMatches();
+    final formatted = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+    try {
+      return await _cachedGet('date_$formatted', '/api/football/date/$formatted', FootballMatch.fromJson);
+    } catch (_) {
+      return [];
+    }
   }
 
-  Future<List<FootballMatch>> getYesterdayMatches() async {
-    final response = await _get('/api/football/yesterday',
-        (data) => _parseList(data, FootballMatch.fromJson));
-    return response.data;
+  Future<List<TeamItem>> getTeams() async =>
+      _cachedGet('teams', '/api/football/teams', TeamItem.fromJson);
+
+  Future<List<StandingGroup>> getStandings() async =>
+      _cachedGet('standings', '/api/football/standings', StandingGroup.fromJson);
+
+  Future<List<LeagueItem>> getLeagues() async =>
+      _cachedGet('leagues', '/api/football/leagues', LeagueItem.fromJson);
+
+  Future<List<MatchTeamStats>> getMatchStats(int fixtureId) async {
+    try {
+      final result = await _getRaw(
+        '/api/football/statistics/$fixtureId',
+        (data) => _parseList(data, MatchTeamStats.fromJson),
+      );
+      return result.data;
+    } catch (_) {
+      return [];
+    }
   }
 
-  Future<List<FootballMatch>> getTomorrowMatches() async {
-    final response = await _get('/api/football/tomorrow',
-        (data) => _parseList(data, FootballMatch.fromJson));
-    return response.data;
+  Future<List<MatchLineup>> getLineups(int fixtureId) async {
+    try {
+      final result = await _getRaw(
+        '/api/football/lineups/$fixtureId',
+        (data) => _parseList(data, MatchLineup.fromJson),
+      );
+      return result.data;
+    } catch (_) {
+      return [];
+    }
   }
 
-  Future<List<TeamItem>> getTeams() async {
-    final response = await _get(
-        '/api/football/teams', (data) => _parseList(data, TeamItem.fromJson));
-    return response.data;
+  Future<List<T>> _cachedGet<T>(
+    String cacheKey,
+    String path,
+    T Function(Map<String, dynamic>) fromJson,
+  ) async {
+    try {
+      final result = await _getRaw(path, (data) => _parseList(data, fromJson));
+      await _cache.save(cacheKey, jsonEncode(result.rawData));
+      _setOffline(false);
+      return result.data;
+    } catch (_) {
+      final cached = await _cache.load(cacheKey);
+      if (cached != null) {
+        _setOffline(true);
+        final decoded = jsonDecode(cached.json) as List<dynamic>;
+        return decoded.map((item) => fromJson(_asMap(item))).toList();
+      }
+      _setOffline(true);
+      rethrow;
+    }
   }
 
-  Future<List<StandingGroup>> getStandings() async {
-    final response = await _get('/api/football/standings',
-        (data) => _parseList(data, StandingGroup.fromJson));
-    return response.data;
-  }
-
-  Future<List<LeagueItem>> getLeagues() async {
-    final response = await _get('/api/football/leagues',
-        (data) => _parseList(data, LeagueItem.fromJson));
-    return response.data;
-  }
-
-  Future<ApiResponse<T>> _get<T>(String path, T Function(dynamic data) parser) async {
+  Future<_RawResult<T>> _getRaw<T>(String path, T Function(dynamic data) parser) async {
     final uri = Uri.parse('$baseUrl$path');
     late final http.Response response;
     try {
-      response = await _client.get(uri, headers: const {'Accept': 'application/json'});
+      response = await _client
+          .get(uri, headers: const {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 15));
     } catch (error) {
       throw Exception('Failed to connect to API: $error');
     }
@@ -87,7 +148,7 @@ class FootballApiService {
             ? apiResponse.message
             : 'API returned an unsuccessful response for $path.');
       }
-      return apiResponse;
+      return _RawResult(apiResponse.data, json['data']);
     } on FormatException catch (error) {
       throw Exception('Invalid API envelope from $path: ${error.message}');
     } catch (error) {
@@ -105,4 +166,10 @@ class FootballApiService {
     if (value is Map) return value.map((key, dynamic val) => MapEntry(key.toString(), val));
     throw const FormatException('Expected a JSON object.');
   }
+}
+
+class _RawResult<T> {
+  final T data;
+  final dynamic rawData;
+  _RawResult(this.data, this.rawData);
 }
