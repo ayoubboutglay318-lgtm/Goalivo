@@ -6,22 +6,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/favorites_service.dart';
-import 'services/community_service.dart';
 import 'services/commentary_service.dart';
 import 'services/football_api_service.dart';
 import 'services/goal_alerts_service.dart';
 import 'services/news_service.dart';
 import 'services/notification_service.dart';
-import 'services/prediction_service.dart';
 import 'services/reactions_service.dart';
-import 'services/xp_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final favs = FavoritesService();
-  final xp = XpService();
   final reactions = ReactionsService();
-  final predictions = PredictionService();
   final apiService = FootballApiService();
   final newsService = NewsService();
   final commentaryService = CommentaryService(apiService: apiService);
@@ -29,17 +24,10 @@ void main() async {
     favoritesService: favs,
     apiService: apiService,
   );
-  final community = CommunityService(
-    xpService: xp,
-    predictionService: predictions,
-  );
 
   await Future.wait([
     favs.load(),
     reactions.load(),
-    predictions.load(),
-    xp.onAppOpen(),
-    community.load(),
   ]);
   try { await NotificationService.instance.init(); } catch (_) {}
   await goalAlerts.load();
@@ -47,11 +35,8 @@ void main() async {
     FootbalLiveApp(
       apiService: apiService,
       favoritesService: favs,
-      xpService: xp,
       reactionsService: reactions,
-      predictionService: predictions,
       goalAlertsService: goalAlerts,
-      communityService: community,
       newsService: newsService,
       commentaryService: commentaryService,
     ),
@@ -63,21 +48,15 @@ class FootbalLiveApp extends StatefulWidget {
     super.key,
     required this.apiService,
     required this.favoritesService,
-    required this.xpService,
     required this.reactionsService,
-    required this.predictionService,
     required this.goalAlertsService,
-    required this.communityService,
     required this.newsService,
     required this.commentaryService,
   });
   final FootballApiService apiService;
   final FavoritesService favoritesService;
-  final XpService xpService;
   final ReactionsService reactionsService;
-  final PredictionService predictionService;
   final GoalAlertsService goalAlertsService;
-  final CommunityService communityService;
   final NewsService newsService;
   final CommentaryService commentaryService;
 
@@ -309,11 +288,8 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
           : HomeScreen(
               apiService: widget.apiService,
               favoritesService: widget.favoritesService,
-              xpService: widget.xpService,
               reactionsService: widget.reactionsService,
-              predictionService: widget.predictionService,
               goalAlertsService: widget.goalAlertsService,
-              communityService: widget.communityService,
               newsService: widget.newsService,
               commentaryService: widget.commentaryService,
               themeMode: _themeMode,

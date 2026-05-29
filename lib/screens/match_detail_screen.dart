@@ -5,25 +5,19 @@ import 'package:intl/intl.dart';
 import '../models/match_models.dart';
 import '../services/football_api_service.dart';
 import '../services/notification_service.dart';
-import '../services/xp_service.dart';
 import '../widgets/event_timeline.dart';
 import '../widgets/info_chip.dart';
 import '../widgets/lineup_pitch_widget.dart';
 import '../widgets/man_of_match_widget.dart';
-import '../utils/match_vibe.dart';
-import '../widgets/match_aura.dart';
 import '../widgets/player_ratings_widget.dart';
-import 'profile_screen.dart' show XpToast;
 
 class MatchDetailScreen extends StatefulWidget {
   const MatchDetailScreen({
     super.key,
     required this.match,
-    this.xpService,
     this.apiService,
   });
   final FootballMatch match;
-  final XpService? xpService;
   final FootballApiService? apiService;
 
   @override
@@ -41,7 +35,6 @@ class _MatchDetailScreenState extends State<MatchDetailScreen>
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(_onTabChanged);
-    _trackXp();
     // Preload lineups immediately so they're ready when user taps the tab
     final id = widget.match.fixture.id;
     if (id != null && widget.apiService != null) {
@@ -67,15 +60,6 @@ class _MatchDetailScreenState extends State<MatchDetailScreen>
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
-  }
-
-  Future<void> _trackXp() async {
-    final svc = widget.xpService;
-    if (svc == null) return;
-    final result = await svc.trackEvent(XpEvent.viewMatchDetail);
-    if (mounted && result.xpGained > 0) {
-      XpToast.show(context, xpGained: result.xpGained, newBadges: result.newBadges);
-    }
   }
 
   @override
@@ -123,7 +107,6 @@ class _MatchDetailScreenState extends State<MatchDetailScreen>
                   homeName: homeName,
                   awayName: awayName,
                   status: status,
-                  xpService: widget.xpService,
                 ),
                 _EventsTab(match: match),
                 _LineupsTab(
@@ -153,31 +136,23 @@ class _OverviewTab extends StatelessWidget {
     required this.homeName,
     required this.awayName,
     required this.status,
-    this.xpService,
   });
   final FootballMatch match;
   final String homeName;
   final String awayName;
   final String status;
-  final XpService? xpService;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Remind Me (upcoming only)
         if (status == 'NS' && match.fixture.date != null && match.fixture.date!.isAfter(DateTime.now())) ...[
           _RemindMeButton(match: match),
           const SizedBox(height: 10),
         ],
-        // Vibe atmosphere
-        AuraAtmosphere(vibe: MatchVibe.from(match)),
-        const SizedBox(height: 12),
-        // Info chips
         _InfoRow(match: match),
         const SizedBox(height: 14),
-        // Score breakdown
         if (match.score?.halftime != null)
           _ScoreBreakdown(score: match.score!),
         const SizedBox(height: 32),

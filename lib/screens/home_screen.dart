@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,14 +8,11 @@ import '../models/match_models.dart';
 import '../models/standing_models.dart';
 import '../models/team_models.dart';
 import '../services/favorites_service.dart';
-import '../services/community_service.dart';
 import '../services/commentary_service.dart';
 import '../services/football_api_service.dart';
 import '../services/goal_alerts_service.dart';
 import '../services/news_service.dart';
-import '../services/prediction_service.dart';
 import '../services/reactions_service.dart';
-import '../services/xp_service.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
@@ -24,7 +21,6 @@ import '../widgets/section_header.dart';
 import 'league_detail_screen.dart';
 import 'match_detail_screen.dart';
 import 'profile_screen.dart';
-import 'quiz_screen.dart';
 import 'team_detail_screen.dart';
 
 // ignore_for_file: unused_field
@@ -34,11 +30,8 @@ class HomeScreen extends StatefulWidget {
     super.key,
     required this.apiService,
     required this.favoritesService,
-    required this.xpService,
     required this.reactionsService,
-    required this.predictionService,
     required this.goalAlertsService,
-    required this.communityService,
     required this.newsService,
     required this.commentaryService,
     this.themeMode = ThemeMode.dark,
@@ -46,11 +39,8 @@ class HomeScreen extends StatefulWidget {
   });
   final FootballApiService apiService;
   final FavoritesService favoritesService;
-  final XpService xpService;
   final ReactionsService reactionsService;
-  final PredictionService predictionService;
   final GoalAlertsService goalAlertsService;
-  final CommunityService communityService;
   final NewsService newsService;
   final CommentaryService commentaryService;
   final ThemeMode themeMode;
@@ -216,7 +206,6 @@ class _HomeScreenState extends State<HomeScreen>
       PageRouteBuilder(
         pageBuilder: (_, animation, _) => MatchDetailScreen(
           match: match,
-          xpService: widget.xpService,
           apiService: widget.apiService,
         ),
         transitionsBuilder: (_, animation, _, child) {
@@ -381,9 +370,7 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         );
       case 3:
-        return QuizScreen(xpService: widget.xpService);
-      case 4:
-        return ProfileScreen(xpService: widget.xpService, goalAlertsService: widget.goalAlertsService);
+        return ProfileScreen(goalAlertsService: widget.goalAlertsService);
       default:
         return const SizedBox.shrink();
     }
@@ -434,7 +421,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: const Row(children: [
                 Icon(Icons.cloud_off, size: 14, color: Colors.white),
                 SizedBox(width: 8),
-                Text('Offline — showing cached data',
+                Text('Offline â€” showing cached data',
                     style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
               ]),
             ),
@@ -448,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen>
                 const SizedBox(width: 8),
                 Expanded(child: Text(
                   widget.favoritesService.ids.isEmpty
-                      ? 'Goal alerts are on — add favorite teams to receive notifications.'
+                      ? 'Goal alerts are on â€” add favorite teams to receive notifications.'
                       : 'Goal alerts are active for your favorite teams.',
                   style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                 )),
@@ -497,11 +484,6 @@ class _HomeScreenState extends State<HomeScreen>
             label: 'Explore',
           ),
           NavigationDestination(
-            icon: Icon(Icons.quiz_outlined),
-            selectedIcon: Icon(Icons.quiz),
-            label: 'Quiz',
-          ),
-          NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: 'Profile',
@@ -513,7 +495,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
-// ─── Matches Tab ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Matches Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _MatchesView extends StatelessWidget {
   const _MatchesView({
@@ -645,257 +627,6 @@ class _MatchCountBadge extends StatelessWidget {
   }
 }
 
-class _FanZoneView extends StatefulWidget {
-  const _FanZoneView({
-    required this.communityService,
-    required this.favoritesService,
-    required this.onRefresh,
-  });
-
-  final CommunityService communityService;
-  final FavoritesService favoritesService;
-  final Future<void> Function() onRefresh;
-
-  @override
-  State<_FanZoneView> createState() => _FanZoneViewState();
-}
-
-class _FanZoneViewState extends State<_FanZoneView> {
-  final TextEditingController _messageController = TextEditingController();
-  bool _isPosting = false;
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _postMessage() async {
-    final message = _messageController.text.trim();
-    if (message.isEmpty) return;
-    setState(() => _isPosting = true);
-    await widget.communityService.addPost(message);
-    _messageController.clear();
-    setState(() => _isPosting = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final hasFavorites = widget.favoritesService.ids.isNotEmpty;
-    return RefreshIndicator(
-      onRefresh: widget.onRefresh,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        children: [
-          const SectionHeader(
-            title: 'Fan Zone',
-            subtitle: 'Community chat, news, and predictions.',
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Community Pulse',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Feel the excitement with trending predictions, live reactions, and team news updates.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _LeaderboardCard(
-            leaderboard: widget.communityService.getLeaderboard(),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Team News',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...CommunityService.getNewsForTeam(
-                    hasFavorites ? 'Your Favorite Team' : 'Football',
-                  ).map(
-                    (news) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            news.title,
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            news.summary,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '${news.publishedAt.hour.toString().padLeft(2, '0')}:${news.publishedAt.minute.toString().padLeft(2, '0')} • ${news.publishedAt.day}/${news.publishedAt.month}/${news.publishedAt.year}',
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Fan Chat',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ListenableBuilder(
-                    listenable: widget.communityService,
-                    builder: (context, _) {
-                      final posts = widget.communityService.posts;
-                      if (posts.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Text(
-                            'Be the first to start the conversation.',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        );
-                      }
-                      return Column(
-                        children: posts.take(4).map((post) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  radius: 16,
-                                  child: Text(post.user.characters.first),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            post.user,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            '${post.timestamp.hour.toString().padLeft(2, '0')}:${post.timestamp.minute.toString().padLeft(2, '0')}',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelSmall
-                                                ?.copyWith(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(post.message),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _messageController,
-                          minLines: 1,
-                          maxLines: 4,
-                          decoration: const InputDecoration(
-                            hintText: 'Share a fan thought...',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      FilledButton(
-                        onPressed: _isPosting ? null : _postMessage,
-                        child: _isPosting
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.send),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-}
-
 class _CommentaryFeedView extends StatelessWidget {
   const _CommentaryFeedView({
     required this.future,
@@ -1003,88 +734,6 @@ class _CommentaryFeedView extends StatelessWidget {
   }
 }
 
-class _LeaderboardCard extends StatelessWidget {
-  const _LeaderboardCard({required this.leaderboard});
-
-  final List<LeaderboardEntry> leaderboard;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Prediction Leaderboard',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 12),
-            ...leaderboard.take(5).map((entry) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: entry.isYou
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                      child: Text(
-                        entry.place.toString(),
-                        style: TextStyle(
-                          color: entry.isYou ? Colors.white : null,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            entry.name,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w700),
-                          ),
-                          if (entry.subtitle != null)
-                            Text(
-                              entry.subtitle!,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      '${entry.score} pts',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Favorites Tab ────────────────────────────────────────────────────────────
-
 class _FavoritesView extends StatefulWidget {
   const _FavoritesView({
     required this.liveFuture,
@@ -1161,7 +810,7 @@ class _FavoritesViewState extends State<_FavoritesView> {
             icon: Icons.star_border_outlined,
             title: 'No favorites yet',
             message:
-                'Go to the Teams tab and tap ★ to follow your favorite teams.',
+                'Go to the Teams tab and tap â˜… to follow your favorite teams.',
           ),
         ],
       );
@@ -1226,7 +875,7 @@ class _FavoritesViewState extends State<_FavoritesView> {
                   subtitle: Text(
                     subtitleParts.isEmpty
                         ? 'Team details unavailable'
-                        : subtitleParts.join(' • '),
+                        : subtitleParts.join(' â€¢ '),
                   ),
                 ),
               );
@@ -1283,7 +932,7 @@ class _FavoritesViewState extends State<_FavoritesView> {
   }
 }
 
-// ─── Standings Tab ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Standings Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _StandingsView extends StatelessWidget {
   const _StandingsView({required this.future, required this.onRefresh});
@@ -1394,7 +1043,7 @@ class _StandingGroupCard extends StatelessWidget {
                       ),
                       if ((league?.country ?? '').isNotEmpty)
                         Text(
-                          '${league!.country!}${league.season != null ? ' · ${league.season}' : ''}',
+                          '${league!.country!}${league.season != null ? ' Â· ${league.season}' : ''}',
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -1704,7 +1353,7 @@ class _StandingLegend extends StatelessWidget {
   }
 }
 
-// ─── Teams Tab ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Teams Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _TeamsView extends StatelessWidget {
   const _TeamsView({
@@ -1828,7 +1477,7 @@ class _TeamsView extends StatelessWidget {
                         subtitle: Text(
                           subtitleParts.isEmpty
                               ? 'Team details unavailable'
-                              : subtitleParts.join(' • '),
+                              : subtitleParts.join(' â€¢ '),
                         ),
                         onTap: onTeamTap != null
                             ? () => onTeamTap!(team)
@@ -1855,7 +1504,7 @@ class _TeamsView extends StatelessWidget {
   }
 }
 
-// ─── Leagues Tab ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Leagues Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _LeaguesView extends StatelessWidget {
   const _LeaguesView({
@@ -1961,7 +1610,7 @@ class _LeaguesView extends StatelessWidget {
                         subtitle: Text(
                           subtitleParts.isEmpty
                               ? 'Competition details unavailable'
-                              : subtitleParts.join(' • '),
+                              : subtitleParts.join(' â€¢ '),
                         ),
                         onTap: onLeagueTap != null
                             ? () => onLeagueTap!(league)
@@ -1979,7 +1628,7 @@ class _LeaguesView extends StatelessWidget {
   }
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 String _initials(String? value) {
   final words = (value ?? '')
@@ -1991,3 +1640,4 @@ String _initials(String? value) {
   if (words.length == 1) return words.first[0].toUpperCase();
   return '${words.first[0]}${words[1][0]}'.toUpperCase();
 }
+
