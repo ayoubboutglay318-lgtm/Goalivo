@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../services/goal_alerts_service.dart';
@@ -71,10 +71,10 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   static const _categoryOrder = ['Engagement', 'Loyalty', 'Progression', 'Explorer'];
   static const _categoryIcons = {
-    'Engagement': '📺',
-    'Loyalty': '🔥',
-    'Progression': '🏆',
-    'Explorer': '🗺️',
+    'Engagement': 'ðŸ“º',
+    'Loyalty': 'ðŸ”¥',
+    'Progression': 'ðŸ†',
+    'Explorer': 'ðŸ—ºï¸',
   };
 
   @override
@@ -98,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         }
 
         final slivers = <Widget>[
-          // ── Hero ──
+          // â”€â”€ Hero â”€â”€
           _ProfileHeroSliver(
             level: level,
             xp: widget.xpService.xp,
@@ -108,7 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             matchViews: widget.xpService.matchViews,
             badgesEarned: widget.xpService.earnedAchievements.length,
           ),
-          // ── XP card + stats + settings ──
+          // â”€â”€ XP card + stats + settings â”€â”€
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
@@ -171,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ];
 
-        // ── Achievement categories ──
+        // â”€â”€ Achievement categories â”€â”€
         for (final cat in _categoryOrder) {
           final items = grouped[cat] ?? [];
           if (items.isEmpty) continue;
@@ -213,7 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ));
         }
 
-        // ── Legal + bottom ──
+        // â”€â”€ Legal + bottom â”€â”€
         slivers.addAll([
           SliverToBoxAdapter(
             child: Padding(
@@ -250,7 +250,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 }
 
-// ── Hero card ─────────────────────────────────────────────────────────────────
+// â”€â”€ Hero card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ProfileHeroSliver extends StatelessWidget {
   const _ProfileHeroSliver({
@@ -348,11 +348,11 @@ class _ProfileHeroSliver extends StatelessWidget {
                           fontWeight: FontWeight.w800)),
                   const SizedBox(height: 12),
                   Row(children: [
-                    _MiniStat(icon: '🔥', value: '$streak', label: 'streak'),
+                    _MiniStat(icon: 'ðŸ”¥', value: '$streak', label: 'streak'),
                     const SizedBox(width: 16),
-                    _MiniStat(icon: '📺', value: '$matchViews', label: 'matches'),
+                    _MiniStat(icon: 'ðŸ“º', value: '$matchViews', label: 'matches'),
                     const SizedBox(width: 16),
-                    _MiniStat(icon: '🏅', value: '$badgesEarned', label: 'badges'),
+                    _MiniStat(icon: 'ðŸ…', value: '$badgesEarned', label: 'badges'),
                   ]),
                 ],
               ),
@@ -386,7 +386,7 @@ class _MiniStat extends StatelessWidget {
   }
 }
 
-// ── XP progress card ──────────────────────────────────────────────────────────
+// â”€â”€ XP progress card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _XpProgressCard extends StatelessWidget {
   const _XpProgressCard({
@@ -432,7 +432,7 @@ class _XpProgressCard extends StatelessWidget {
                         color: levelColor.withValues(alpha: 0.7), fontWeight: FontWeight.w700)),
                 const Spacer(),
                 if (isMaxLevel)
-                  _Pill(label: '👑 MAX', color: Colors.amber)
+                  _Pill(label: 'ðŸ‘‘ MAX', color: Colors.amber)
                 else
                   Text('$xpToNext XP to go',
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -563,7 +563,7 @@ class _ShimmerXpBar extends StatelessWidget {
   }
 }
 
-// ── Section header ────────────────────────────────────────────────────────────
+// â”€â”€ Section header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.title, required this.earned, required this.total});
@@ -592,7 +592,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ── Achievement tile ──────────────────────────────────────────────────────────
+// â”€â”€ Achievement tile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _AchievementTile extends StatelessWidget {
   const _AchievementTile({
@@ -652,7 +652,7 @@ class _AchievementTile extends StatelessWidget {
           ),
           alignment: Alignment.center,
           child: Text(
-            earned ? achievement.emoji : '🔒',
+            earned ? achievement.emoji : 'ðŸ”’',
             style: TextStyle(
               fontSize: 18,
               color: earned ? null : Colors.white.withValues(alpha: 0.18),
@@ -738,7 +738,7 @@ class _MicroProgressBar extends StatelessWidget {
   }
 }
 
-// ── Daily Missions card ───────────────────────────────────────────────────────
+// â”€â”€ Daily Missions card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _DailyMissionsCard extends StatelessWidget {
   const _DailyMissionsCard({required this.xpService});
@@ -751,19 +751,19 @@ class _DailyMissionsCard extends StatelessWidget {
 
     final missions = [
       (
-        icon: '☀️',
+        icon: 'â˜€ï¸',
         label: 'Open the app',
         xp: 20,
         done: true,
       ),
       (
-        icon: '📺',
+        icon: 'ðŸ“º',
         label: 'View a match',
         xp: 3,
         done: xpService.matchViews > 0,
       ),
       (
-        icon: '🧠',
+        icon: 'ðŸ§ ',
         label: 'Complete the quiz',
         xp: 15,
         done: false,
@@ -793,7 +793,7 @@ class _DailyMissionsCard extends StatelessWidget {
                 color: purple.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Center(child: Text('🎯', style: TextStyle(fontSize: 15))),
+              child: const Center(child: Text('ðŸŽ¯', style: TextStyle(fontSize: 15))),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -886,7 +886,7 @@ class _DailyMissionsCard extends StatelessWidget {
   }
 }
 
-// ── XP Toast ──────────────────────────────────────────────────────────────────
+// â”€â”€ XP Toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class XpToast extends StatefulWidget {
   const XpToast({
@@ -1018,14 +1018,14 @@ class _XpGainedBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
       decoration: BoxDecoration(
-        color: const Color(0xFF1B5E20),
+        color: const Color(0xFF4527A0),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(color: Colors.green.withValues(alpha: 0.4), blurRadius: 16),
         ],
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        const Text('⭐', style: TextStyle(fontSize: 18)),
+        const Text('â­', style: TextStyle(fontSize: 18)),
         const SizedBox(width: 8),
         Text('+$xpGained XP',
             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),

@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,11 +34,11 @@ const _questions = [
     question: 'Which club has won the most UEFA Champions League titles?',
     options: ['AC Milan', 'Barcelona', 'Bayern Munich', 'Real Madrid'],
     answerIndex: 3,
-    fact: 'Real Madrid has won 15 Champions League titles — more than any other club.',
+    fact: 'Real Madrid has won 15 Champions League titles â€” more than any other club.',
   ),
   _Question(
     question: 'Who is the all-time top scorer in FIFA World Cup history?',
-    options: ['Ronaldo', 'Pelé', 'Messi', 'Miroslav Klose'],
+    options: ['Ronaldo', 'PelÃ©', 'Messi', 'Miroslav Klose'],
     answerIndex: 3,
     fact: 'Miroslav Klose scored 16 World Cup goals across four tournaments for Germany.',
   ),
@@ -52,11 +52,11 @@ const _questions = [
     question: 'Which country has won the most FIFA World Cups?',
     options: ['Germany', 'Italy', 'Argentina', 'Brazil'],
     answerIndex: 3,
-    fact: "Brazil has won the World Cup 5 times — 1958, 1962, 1970, 1994, and 2002.",
+    fact: "Brazil has won the World Cup 5 times â€” 1958, 1962, 1970, 1994, and 2002.",
   ),
   _Question(
     question: 'Who scored the famous "Hand of God" goal?',
-    options: ['Pelé', 'Ronaldo', 'Zidane', 'Maradona'],
+    options: ['PelÃ©', 'Ronaldo', 'Zidane', 'Maradona'],
     answerIndex: 3,
     fact: 'Diego Maradona scored it with his hand against England in the 1986 World Cup quarter-final.',
   ),
@@ -92,7 +92,7 @@ const _questions = [
   ),
   _Question(
     question: 'Which player is nicknamed "El Pibe de Oro" (The Golden Boy)?',
-    options: ['Messi', 'Ronaldo', 'Maradona', 'Pelé'],
+    options: ['Messi', 'Ronaldo', 'Maradona', 'PelÃ©'],
     answerIndex: 2,
     fact: 'Diego Maradona earned this nickname due to his golden football talent from a very young age.',
   ),
@@ -164,9 +164,9 @@ const _questions = [
   ),
   _Question(
     question: 'Which player scored for 5 different clubs in the Champions League?',
-    options: ['Ronaldo', 'Zlatan Ibrahimović', 'Raul', 'Thierry Henry'],
+    options: ['Ronaldo', 'Zlatan IbrahimoviÄ‡', 'Raul', 'Thierry Henry'],
     answerIndex: 1,
-    fact: "Zlatan Ibrahimović scored Champions League goals for Ajax, Juventus, Inter, Barcelona, AC Milan and PSG — 6 clubs!",
+    fact: "Zlatan IbrahimoviÄ‡ scored Champions League goals for Ajax, Juventus, Inter, Barcelona, AC Milan and PSG â€” 6 clubs!",
   ),
 ];
 
@@ -344,7 +344,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
                     color: theme.colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Center(child: Text('🧠', style: TextStyle(fontSize: 18))),
+                  child: const Center(child: Text('ðŸ§ ', style: TextStyle(fontSize: 18))),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -477,7 +477,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
                             ),
                           ),
                           child: Text(
-                            _index < _deck.length - 1 ? 'Next Question →' : 'See Results',
+                            _index < _deck.length - 1 ? 'Next Question â†’' : 'See Results',
                             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                           ),
                         ),
@@ -508,7 +508,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
   }
 }
 
-// ── Streak badge ───────────────────────────────────────────────────────────────
+// â”€â”€ Streak badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _StreakBadge extends StatelessWidget {
   const _StreakBadge({required this.streak});
@@ -527,7 +527,7 @@ class _StreakBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 10)),
+          const Text('ðŸ”¥', style: TextStyle(fontSize: 10)),
           const SizedBox(width: 3),
           Text(
             '$streak streak',
@@ -543,7 +543,7 @@ class _StreakBadge extends StatelessWidget {
   }
 }
 
-// ── XP popup ──────────────────────────────────────────────────────────────────
+// â”€â”€ XP popup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _XpPopup extends StatelessWidget {
   const _XpPopup({required this.xp, required this.correct});
@@ -552,7 +552,7 @@ class _XpPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = correct ? const Color(0xFF00C853) : Colors.orange;
+    final color = correct ? const Color(0xFF7C4DFF) : Colors.orange;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
@@ -566,7 +566,7 @@ class _XpPopup extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(correct ? '⭐' : '📚', style: const TextStyle(fontSize: 14)),
+          Text(correct ? 'â­' : 'ðŸ“š', style: const TextStyle(fontSize: 14)),
           const SizedBox(width: 5),
           Text(
             '+$xp XP',
@@ -582,7 +582,7 @@ class _XpPopup extends StatelessWidget {
   }
 }
 
-// ── Option tile ────────────────────────────────────────────────────────────────
+// â”€â”€ Option tile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _OptionTile extends StatefulWidget {
   const _OptionTile({
@@ -650,9 +650,9 @@ class _OptionTileState extends State<_OptionTile>
 
     if (widget.revealed) {
       if (widget.correct) {
-        bgColor = const Color(0xFF00C853).withValues(alpha: 0.15);
-        borderColor = const Color(0xFF00C853);
-        trailing = const Icon(Icons.check_circle_rounded, color: Color(0xFF00C853), size: 22);
+        bgColor = const Color(0xFF7C4DFF).withValues(alpha: 0.15);
+        borderColor = const Color(0xFF7C4DFF);
+        trailing = const Icon(Icons.check_circle_rounded, color: Color(0xFF7C4DFF), size: 22);
       } else if (widget.selected) {
         bgColor = Colors.red.withValues(alpha: 0.12);
         borderColor = Colors.red;
@@ -672,7 +672,7 @@ class _OptionTileState extends State<_OptionTile>
 
     final labels = ['A', 'B', 'C', 'D'];
     final labelColor = widget.revealed && widget.correct
-        ? const Color(0xFF00C853)
+        ? const Color(0xFF7C4DFF)
         : widget.revealed && widget.selected
             ? Colors.red
             : widget.revealed
@@ -751,7 +751,7 @@ class _OptionTileState extends State<_OptionTile>
   }
 }
 
-// ── Fact card ─────────────────────────────────────────────────────────────────
+// â”€â”€ Fact card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _FactCard extends StatefulWidget {
   const _FactCard({required this.fact});
@@ -801,7 +801,7 @@ class _FactCardState extends State<_FactCard>
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('💡', style: TextStyle(fontSize: 15)),
+              const Text('ðŸ’¡', style: TextStyle(fontSize: 15)),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -820,7 +820,7 @@ class _FactCardState extends State<_FactCard>
   }
 }
 
-// ── Result view ───────────────────────────────────────────────────────────────
+// â”€â”€ Result view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ResultView extends StatefulWidget {
   const _ResultView({
@@ -866,7 +866,7 @@ class _ResultViewState extends State<_ResultView>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final pct = widget.score / widget.total;
-    final emoji = pct >= 0.8 ? '🏆' : pct >= 0.6 ? '⚽' : pct >= 0.4 ? '🎽' : '📚';
+    final emoji = pct >= 0.8 ? 'ðŸ†' : pct >= 0.6 ? 'âš½' : pct >= 0.4 ? 'ðŸŽ½' : 'ðŸ“š';
     final label = pct >= 0.8
         ? 'Football Expert!'
         : pct >= 0.6
@@ -875,7 +875,7 @@ class _ResultViewState extends State<_ResultView>
                 ? 'Keep Practicing'
                 : 'Study Up!';
     final labelColor = pct >= 0.8
-        ? const Color(0xFF00C853)
+        ? const Color(0xFF7C4DFF)
         : pct >= 0.6
             ? Colors.amber
             : pct >= 0.4
@@ -928,7 +928,7 @@ class _ResultViewState extends State<_ResultView>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('⭐', style: TextStyle(fontSize: 22)),
+                    const Text('â­', style: TextStyle(fontSize: 22)),
                     const SizedBox(width: 10),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

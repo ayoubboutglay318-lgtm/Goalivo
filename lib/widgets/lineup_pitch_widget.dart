@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/match_models.dart';
 import '../services/team_plan_service.dart';
 
@@ -223,7 +223,7 @@ class _LineupPitchWidgetState extends State<LineupPitchWidget>
                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                     maxLines: 1, overflow: TextOverflow.ellipsis),
                 Text(homeFormation,
-                    style: const TextStyle(color: Color(0xFF66BB6A), fontWeight: FontWeight.w700, fontSize: 12)),
+                    style: const TextStyle(color: Color(0xFF9575CD), fontWeight: FontWeight.w700, fontSize: 12)),
               ]),
             ),
             Container(
@@ -240,7 +240,7 @@ class _LineupPitchWidgetState extends State<LineupPitchWidget>
                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                     maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.end),
                 Text(awayFormation,
-                    style: const TextStyle(color: Color(0xFFEF5350), fontWeight: FontWeight.w700, fontSize: 12),
+                    style: const TextStyle(color: Color(0xFFFF6584), fontWeight: FontWeight.w700, fontSize: 12),
                     textAlign: TextAlign.end),
               ]),
             ),
@@ -330,7 +330,7 @@ class _LineupPitchWidgetState extends State<LineupPitchWidget>
   }
 }
 
-// ── Player dot ────────────────────────────────────────────────────────────────
+// â”€â”€ Player dot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _PlayerDot extends StatelessWidget {
   const _PlayerDot({
@@ -535,7 +535,7 @@ class _PlayerDot extends StatelessWidget {
                             border: Border.all(color: Colors.white, width: 1),
                           ),
                           alignment: Alignment.center,
-                          child: const Text('⚽', style: TextStyle(fontSize: 9)),
+                          child: const Text('âš½', style: TextStyle(fontSize: 9)),
                         ),
                       ),
                   ],
@@ -564,7 +564,7 @@ class _PlayerDot extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                // Rating chip — only for named players, not generic numbered slots
+                // Rating chip â€” only for named players, not generic numbered slots
                 if (!_isGeneric) ...[
                   const SizedBox(height: 1),
                   Builder(builder: (_) {
@@ -578,7 +578,7 @@ class _PlayerDot extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        '${isBest ? '★' : ''}${rating.toStringAsFixed(1)}',
+                        '${isBest ? 'â˜…' : ''}${rating.toStringAsFixed(1)}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 7.5,
@@ -599,7 +599,7 @@ class _PlayerDot extends StatelessWidget {
   }
 }
 
-// ── Player modal ──────────────────────────────────────────────────────────────
+// â”€â”€ Player modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _PlayerModal extends StatelessWidget {
   const _PlayerModal({
@@ -694,11 +694,11 @@ class _PlayerModal extends StatelessWidget {
           child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
             _StatChip(label: 'Number', value: '#${player.number}'),
             _StatChip(label: 'Position', value: _posLabel),
-            if (hasGoal) _StatChip(label: 'Goal', value: '⚽', accent: true),
+            if (hasGoal) _StatChip(label: 'Goal', value: 'âš½', accent: true),
             if (card != null)
               _StatChip(
                 label: 'Card',
-                value: card == 'red' ? '🟥' : '🟨',
+                value: card == 'red' ? 'ðŸŸ¥' : 'ðŸŸ¨',
                 accent: true,
               ),
           ]),
@@ -733,7 +733,7 @@ class _StatChip extends StatelessWidget {
   }
 }
 
-// ── Bench section ─────────────────────────────────────────────────────────────
+// â”€â”€ Bench section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _BenchSection extends StatelessWidget {
   const _BenchSection({
@@ -757,7 +757,7 @@ class _BenchSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Text(homeTeamName,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF66BB6A))),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF9575CD))),
         ),
         const SizedBox(height: 6),
         SingleChildScrollView(
@@ -776,7 +776,7 @@ class _BenchSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Text(awayTeamName,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFFEF5350))),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFFFF6584))),
         ),
         const SizedBox(height: 6),
         SingleChildScrollView(
@@ -851,7 +851,7 @@ class _BenchCard extends StatelessWidget {
   }
 }
 
-// ── Pitch painter ─────────────────────────────────────────────────────────────
+// â”€â”€ Pitch painter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _PitchPainter extends CustomPainter {
   @override
@@ -911,7 +911,7 @@ class _PitchPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ── Legend ────────────────────────────────────────────────────────────────────
+// â”€â”€ Legend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _LegendDot extends StatelessWidget {
   const _LegendDot({required this.color, required this.label});

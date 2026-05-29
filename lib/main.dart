@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -126,13 +126,13 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
   ThemeData _buildDarkTheme() {
     final base =
         ColorScheme.fromSeed(
-          seedColor: const Color(0xFF00C853),
+          seedColor: const Color(0xFF7C4DFF),
           brightness: Brightness.dark,
         ).copyWith(
-          surface: const Color(0xFF080808),
-          surfaceContainerHighest: const Color(0xFF141414),
-          primary: const Color(0xFF00C853),
-          onPrimary: Colors.black,
+          surface: const Color(0xFF07060F),
+          surfaceContainerHighest: const Color(0xFF120F1E),
+          primary: const Color(0xFF7C4DFF),
+          onPrimary: Colors.white,
         );
     return ThemeData(
       colorScheme: base,
@@ -149,23 +149,23 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
         labelSmall: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 0.5),
       ),
       cardTheme: CardThemeData(
-        color: const Color(0xFF111111),
+        color: const Color(0xFF0F0D1A),
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: Color(0xFF1E1E1E)),
+          side: const BorderSide(color: Color(0xFF1E1A2E)),
         ),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF080808),
+        backgroundColor: Color(0xFF07060F),
         surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.light,
         elevation: 0,
       ),
       tabBarTheme: TabBarThemeData(
         dividerColor: const Color(0xFF1E1E1E),
-        indicatorColor: const Color(0xFF00C853),
-        labelColor: const Color(0xFF00C853),
+        indicatorColor: const Color(0xFF7C4DFF),
+        labelColor: const Color(0xFF7C4DFF),
         unselectedLabelColor: Colors.white38,
         labelStyle: GoogleFonts.inter(
           fontWeight: FontWeight.w700,
@@ -176,7 +176,7 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
           fontSize: 12,
         ),
       ),
-      scaffoldBackgroundColor: const Color(0xFF080808),
+      scaffoldBackgroundColor: const Color(0xFF07060F),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           shape: RoundedRectangleBorder(
@@ -186,18 +186,18 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: const Color(0xFF0D0D0D),
+        backgroundColor: const Color(0xFF0C0A18),
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.black54,
         elevation: 0,
         height: 64,
-        indicatorColor: const Color(0xFF00C853).withValues(alpha: 0.18),
+        indicatorColor: const Color(0xFF7C4DFF).withValues(alpha: 0.18),
         indicatorShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(size: 26, color: Color(0xFF00C853));
+            return const IconThemeData(size: 26, color: Color(0xFF7C4DFF));
           }
           return const IconThemeData(size: 24, color: Color(0xFF666666));
         }),
@@ -206,7 +206,7 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
             return GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF00C853),
+              color: const Color(0xFF7C4DFF),
             );
           }
           return GoogleFonts.inter(
@@ -224,12 +224,12 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
     return ThemeData(
       colorScheme:
           ColorScheme.fromSeed(
-            seedColor: const Color(0xFF1B5E20),
+            seedColor: const Color(0xFF4527A0),
             brightness: Brightness.light,
           ).copyWith(
             surface: Colors.white,
             surfaceContainerHighest: const Color(0xFFF2F2F2),
-            primary: const Color(0xFF1B5E20),
+            primary: const Color(0xFF4527A0),
           ),
       useMaterial3: true,
       cardTheme: CardThemeData(
@@ -249,8 +249,8 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
       ),
       tabBarTheme: TabBarThemeData(
         dividerColor: const Color(0xFFCCCCCC),
-        indicatorColor: const Color(0xFF1B5E20),
-        labelColor: const Color(0xFF1B5E20),
+        indicatorColor: const Color(0xFF4527A0),
+        labelColor: const Color(0xFF4527A0),
         unselectedLabelColor: Colors.black54,
         labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
         unselectedLabelStyle: const TextStyle(
@@ -265,13 +265,13 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
         shadowColor: Colors.black12,
         elevation: 0,
         height: 64,
-        indicatorColor: const Color(0xFF1B5E20).withValues(alpha: 0.12),
+        indicatorColor: const Color(0xFF4527A0).withValues(alpha: 0.12),
         indicatorShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(size: 26, color: Color(0xFF1B5E20));
+            return const IconThemeData(size: 26, color: Color(0xFF4527A0));
           }
           return const IconThemeData(size: 24, color: Color(0xFF999999));
         }),
@@ -280,7 +280,7 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
             return const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1B5E20),
+              color: Color(0xFF4527A0),
             );
           }
           return const TextStyle(

@@ -14,7 +14,6 @@ import '../utils/match_vibe.dart';
 import '../widgets/match_aura.dart';
 import '../widgets/player_ratings_widget.dart';
 import 'profile_screen.dart' show XpToast;
-import 'watch_screen.dart';
 
 class MatchDetailScreen extends StatefulWidget {
   const MatchDetailScreen({
@@ -172,9 +171,6 @@ class _OverviewTab extends StatelessWidget {
           _RemindMeButton(match: match),
           const SizedBox(height: 10),
         ],
-        // Watch Live
-        _WatchButton(homeName: homeName, awayName: awayName),
-        const SizedBox(height: 14),
         // Vibe atmosphere
         AuraAtmosphere(vibe: MatchVibe.from(match)),
         const SizedBox(height: 12),
@@ -435,58 +431,6 @@ class _StatBarRow extends StatelessWidget {
   }
 }
 
-// ── Watch button ──────────────────────────────────────────────────────────────
-
-class _WatchButton extends StatelessWidget {
-  const _WatchButton({required this.homeName, required this.awayName});
-  final String homeName;
-  final String awayName;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => WatchScreen(homeName: homeName, awayName: awayName)),
-      ),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 13),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.red.shade700, Colors.red.shade500],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.red.withValues(alpha: 0.3),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.live_tv_rounded, color: Colors.white, size: 18),
-            SizedBox(width: 8),
-            Text(
-              'Watch Live',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ── Hero score board ──────────────────────────────────────────────────────────
 

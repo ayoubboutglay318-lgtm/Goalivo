@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-// ── Data model ────────────────────────────────────────────────────────────────
+// â”€â”€ Data model â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _Channel {
   const _Channel({required this.name, required this.color, this.logoUrl});
@@ -24,7 +24,7 @@ class _LeagueChannels {
   final Color color;
 }
 
-// ── Static channel guide data ─────────────────────────────────────────────────
+// â”€â”€ Static channel guide data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const _guide = [
   _LeagueChannels(
@@ -117,7 +117,7 @@ const _guide = [
   ),
 ];
 
-// ── Main widget ───────────────────────────────────────────────────────────────
+// â”€â”€ Main widget â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class WatchScreen extends StatefulWidget {
   const WatchScreen({
@@ -193,7 +193,7 @@ class _WatchScreenState extends State<WatchScreen>
               TabBar(
                 controller: _tabCtrl,
                 tabs: const [Tab(text: 'TV Guide'), Tab(text: 'Leagues')],
-                indicatorColor: const Color(0xFF00C853),
+                indicatorColor: const Color(0xFF7C4DFF),
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white38,
                 dividerColor: Colors.white10,
@@ -215,7 +215,7 @@ class _WatchScreenState extends State<WatchScreen>
   }
 }
 
-// ── Header ────────────────────────────────────────────────────────────────────
+// â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _Header extends StatelessWidget {
   const _Header({required this.homeName, required this.awayName, required this.onYoutube});
@@ -252,11 +252,11 @@ class _Header extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Text('FOOTBALL TV',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1)),
-              const Text('TV Live · Streaming',
+              const Text('TV Live Â· Streaming',
                   style: TextStyle(fontSize: 11, color: Colors.white38, fontWeight: FontWeight.w500)),
             ]),
           ),
-          const Icon(Icons.live_tv, color: Color(0xFF00C853), size: 22),
+          const Icon(Icons.live_tv, color: Color(0xFF7C4DFF), size: 22),
         ]),
         const SizedBox(height: 20),
         // Match banner
@@ -306,7 +306,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ── TV Guide (channels per league) ────────────────────────────────────────────
+// â”€â”€ TV Guide (channels per league) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _GuideView extends StatelessWidget {
   const _GuideView({required this.guide, required this.onWatch});
@@ -440,7 +440,7 @@ class _ChannelCard extends StatelessWidget {
   }
 }
 
-// ── Leagues list view ─────────────────────────────────────────────────────────
+// â”€â”€ Leagues list view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _LeagueListView extends StatelessWidget {
   const _LeagueListView({required this.guide, required this.onLeague});
@@ -476,7 +476,7 @@ class _LeagueListView extends StatelessWidget {
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(item.league, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
-                Text(item.channels.map((c) => c.name).join(' · '),
+                Text(item.channels.map((c) => c.name).join(' Â· '),
                     style: const TextStyle(color: Colors.white38, fontSize: 11),
                     maxLines: 1, overflow: TextOverflow.ellipsis),
               ])),
@@ -489,7 +489,7 @@ class _LeagueListView extends StatelessWidget {
   }
 }
 
-// ── WebView page ──────────────────────────────────────────────────────────────
+// â”€â”€ WebView page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _WebViewPage extends StatefulWidget {
   const _WebViewPage({required this.url, required this.title, required this.onBack});
@@ -538,7 +538,7 @@ class _WebViewPageState extends State<_WebViewPage> {
                 child: LinearProgressIndicator(
                   value: _progress > 0 ? _progress : null,
                   backgroundColor: Colors.white12,
-                  color: const Color(0xFF00C853),
+                  color: const Color(0xFF7C4DFF),
                   minHeight: 2,
                 ))
             : null,
@@ -548,7 +548,7 @@ class _WebViewPageState extends State<_WebViewPage> {
   }
 }
 
-// ── Sliver tab bar delegate ───────────────────────────────────────────────────
+// â”€â”€ Sliver tab bar delegate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _TabDelegate extends SliverPersistentHeaderDelegate {
   const _TabDelegate(this.tabBar);
