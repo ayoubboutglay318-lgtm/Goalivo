@@ -171,7 +171,7 @@ class _LineupPitchWidgetState extends State<LineupPitchWidget>
                 number: e.value.number ?? (e.key + 1),
                 photoUrl: e.value.photoUrl ?? '',
                 captain: e.key == 0,
-                pos: null,
+                pos: e.value.position,
                 id: null,
               ))
           .toList();
@@ -196,7 +196,7 @@ class _LineupPitchWidgetState extends State<LineupPitchWidget>
                 number: e.value.number ?? (e.key + 1),
                 photoUrl: e.value.photoUrl ?? '',
                 captain: e.key == 0,
-                pos: null,
+                pos: e.value.position,
                 id: null,
               ))
           .toList();
@@ -359,7 +359,10 @@ class _PlayerDot extends StatelessWidget {
   bool get _isGeneric => player.name.trim().isEmpty;
 
   String get _displayName {
-    if (_isGeneric) return '${player.number}';
+    if (_isGeneric) {
+      final pos = player.pos?.toUpperCase() ?? '';
+      return pos.isNotEmpty ? '${player.number} $pos' : '${player.number}';
+    }
     final parts = player.name.trim().split(' ');
     final initial = parts.first[0].toUpperCase();
     final last = parts.last;
@@ -369,7 +372,7 @@ class _PlayerDot extends StatelessWidget {
   }
 
   String get _initials {
-    if (_isGeneric) return '${player.number}';
+    if (_isGeneric) return player.pos?.toUpperCase().substring(0, player.pos!.length.clamp(0, 2)) ?? '${player.number}';
     final parts = player.name.trim().split(' ');
     if (parts.length == 1) return parts.first[0].toUpperCase();
     return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
