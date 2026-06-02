@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../services/goal_alerts_service.dart';
+import '../services/notification_preferences_service.dart';
+import 'notification_settings_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'terms_screen.dart';
 
@@ -9,8 +11,10 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({
     super.key,
     required this.goalAlertsService,
+    required this.notifPrefs,
   });
   final GoalAlertsService goalAlertsService;
+  final NotificationPreferencesService notifPrefs;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -47,23 +51,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Notifications section
         _SectionHeader(title: 'Notifications'),
         const SizedBox(height: 8),
-        ListenableBuilder(
-          listenable: widget.goalAlertsService,
-          builder: (context, _) {
-            return _SettingsTile(
-              icon: Icons.notifications_active_outlined,
-              title: 'Goal Alerts',
-              subtitle: 'Get notified when your favourite teams score',
-              trailing: Switch(
-                value: widget.goalAlertsService.enabled,
-                onChanged: (_) {
-                  HapticFeedback.selectionClick();
-                  widget.goalAlertsService.toggleEnabled();
-                },
-                activeTrackColor: theme.colorScheme.primary,
-              ),
-            );
-          },
+        _SettingsTile(
+          icon: Icons.notifications_active_outlined,
+          title: 'Notification Settings',
+          subtitle: 'Goals, red cards, results and more',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => NotificationSettingsScreen(service: widget.notifPrefs),
+            ),
+          ),
         ),
         const SizedBox(height: 24),
 

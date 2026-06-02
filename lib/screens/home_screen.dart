@@ -9,6 +9,7 @@ import '../models/standing_models.dart';
 import '../models/team_models.dart';
 import '../services/favorites_service.dart';
 import '../services/commentary_service.dart';
+import '../services/notification_preferences_service.dart';
 import '../services/football_api_service.dart';
 import '../services/goal_alerts_service.dart';
 import '../services/news_service.dart';
@@ -32,6 +33,7 @@ class HomeScreen extends StatefulWidget {
     required this.favoritesService,
     required this.reactionsService,
     required this.goalAlertsService,
+    required this.notifPrefs,
     required this.newsService,
     required this.commentaryService,
     this.themeMode = ThemeMode.dark,
@@ -41,6 +43,7 @@ class HomeScreen extends StatefulWidget {
   final FavoritesService favoritesService;
   final ReactionsService reactionsService;
   final GoalAlertsService goalAlertsService;
+  final NotificationPreferencesService notifPrefs;
   final NewsService newsService;
   final CommentaryService commentaryService;
   final ThemeMode themeMode;
@@ -370,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         );
       case 3:
-        return ProfileScreen(goalAlertsService: widget.goalAlertsService);
+        return ProfileScreen(goalAlertsService: widget.goalAlertsService, notifPrefs: widget.notifPrefs);
       default:
         return const SizedBox.shrink();
     }

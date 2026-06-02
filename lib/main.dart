@@ -11,6 +11,7 @@ import 'services/football_api_service.dart';
 import 'services/goal_alerts_service.dart';
 import 'services/news_service.dart';
 import 'services/notification_service.dart';
+import 'services/notification_preferences_service.dart';
 import 'services/reactions_service.dart';
 
 void main() async {
@@ -20,6 +21,7 @@ void main() async {
   final apiService = FootballApiService();
   final newsService = NewsService();
   final commentaryService = CommentaryService(apiService: apiService);
+  final notifPrefs = NotificationPreferencesService();
   final goalAlerts = GoalAlertsService(
     favoritesService: favs,
     apiService: apiService,
@@ -28,6 +30,7 @@ void main() async {
   await Future.wait([
     favs.load(),
     reactions.load(),
+    notifPrefs.load(),
   ]);
   try { await NotificationService.instance.init(); } catch (_) {}
   await goalAlerts.load();
@@ -37,6 +40,7 @@ void main() async {
       favoritesService: favs,
       reactionsService: reactions,
       goalAlertsService: goalAlerts,
+      notifPrefs: notifPrefs,
       newsService: newsService,
       commentaryService: commentaryService,
     ),
@@ -50,6 +54,7 @@ class FootbalLiveApp extends StatefulWidget {
     required this.favoritesService,
     required this.reactionsService,
     required this.goalAlertsService,
+    required this.notifPrefs,
     required this.newsService,
     required this.commentaryService,
   });
@@ -57,6 +62,7 @@ class FootbalLiveApp extends StatefulWidget {
   final FavoritesService favoritesService;
   final ReactionsService reactionsService;
   final GoalAlertsService goalAlertsService;
+  final NotificationPreferencesService notifPrefs;
   final NewsService newsService;
   final CommentaryService commentaryService;
 
@@ -290,6 +296,7 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
               favoritesService: widget.favoritesService,
               reactionsService: widget.reactionsService,
               goalAlertsService: widget.goalAlertsService,
+              notifPrefs: widget.notifPrefs,
               newsService: widget.newsService,
               commentaryService: widget.commentaryService,
               themeMode: _themeMode,
