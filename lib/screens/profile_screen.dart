@@ -37,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Icon(Icons.sports_soccer, size: 40, color: theme.colorScheme.primary),
             ),
             const SizedBox(height: 12),
-            Text('Kickora', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Goalivo', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 4),
             Text('Football Live Scores', style: theme.textTheme.bodySmall),
           ]),
