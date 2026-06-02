@@ -282,7 +282,7 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'KickOra',
+      title: 'Goalivo',
       debugShowCheckedModeBanner: false,
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),

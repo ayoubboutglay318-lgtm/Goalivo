@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -100,7 +100,7 @@ class _AuthScreenState extends State<AuthScreen>
                   child: const Icon(Icons.sports_soccer, color: Colors.white, size: 40),
                 ),
                 const SizedBox(height: 16),
-                const Text('KickOra',
+                const Text('Goalivo',
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900,
                         color: Colors.white, letterSpacing: 1.2)),
                 const SizedBox(height: 6),

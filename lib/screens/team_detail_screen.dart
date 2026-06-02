@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../models/match_models.dart';
 import '../models/team_models.dart';
@@ -138,7 +138,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                                   (article) => SportsNewsArticle(
                                     title: article.title,
                                     description: article.summary,
-                                    source: 'KickOra Fan Zone',
+                                    source: 'Goalivo Fan Zone',
                                     publishedAt: article.publishedAt,
                                   ),
                                 )
@@ -361,7 +361,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                         (note) => Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Text(
-                            '• $note',
+                            'â€¢ $note',
                             style: theme.textTheme.bodySmall,
                           ),
                         ),

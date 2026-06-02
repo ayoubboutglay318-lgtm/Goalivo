@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -137,9 +137,9 @@ class CommunityService extends ChangeNotifier {
     _posts.addAll([
       SocialPost(
         id: 'welcome',
-        user: 'KickOra',
+        user: 'Goalivo',
         message:
-            'Welcome to the Fan Zone — share your thoughts, predict outcomes, and celebrate goals together!',
+            'Welcome to the Fan Zone â€” share your thoughts, predict outcomes, and celebrate goals together!',
         timestamp: DateTime.now().subtract(const Duration(hours: 2)),
       ),
       SocialPost(
@@ -155,7 +155,7 @@ class CommunityService extends ChangeNotifier {
         id: 'stats',
         user: 'Alex',
         message:
-            'Prediction leaderboard looks tight — I need one more exact score for the top 3!',
+            'Prediction leaderboard looks tight â€” I need one more exact score for the top 3!',
         timestamp: DateTime.now().subtract(const Duration(minutes: 32)),
       ),
     ]);
