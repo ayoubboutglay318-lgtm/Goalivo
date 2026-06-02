@@ -82,13 +82,22 @@ class FootballApiService extends ChangeNotifier {
     }
   }
 
+  static const _rapidApiKey = '1ace74ec80msh32795e21bd8a5c7p1880cbjsn29d97a4805e7';
+  static const _rapidApiHost = 'api-football-v1.p.rapidapi.com';
+
   Future<List<MatchLineup>> getLineups(int fixtureId) async {
     try {
-      final result = await _getRaw(
-        '/api/football/lineups/$fixtureId',
-        (data) => _parseList(data, MatchLineup.fromJson),
-      );
-      return result.data;
+      final uri = Uri.parse(
+          'https://$_rapidApiHost/v3/fixtures/lineups?fixture=$fixtureId');
+      final response = await _client.get(uri, headers: {
+        'x-rapidapi-key': _rapidApiKey,
+        'x-rapidapi-host': _rapidApiHost,
+      }).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) return [];
+      final decoded = jsonDecode(response.body);
+      final list = decoded['response'] as List<dynamic>? ?? [];
+      return list.map((e) => MatchLineup.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
       return [];
     }
