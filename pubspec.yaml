@@ -2,7 +2,7 @@ name: kickkora
 description: "goallive - Live football scores, fixtures and lineups."
 publish_to: 'none'
 
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ^3.11.4
