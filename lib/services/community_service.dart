@@ -3,6 +3,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'community_api_service.dart';
 import 'prediction_service.dart';
 import 'xp_service.dart';
 
@@ -75,8 +76,13 @@ class CommunityService extends ChangeNotifier {
   static const _postKey = 'community_posts';
   final XpService xpService;
   final PredictionService predictionService;
+  final CommunityApiService? apiService;
 
-  CommunityService({required this.xpService, required this.predictionService});
+  CommunityService({
+    required this.xpService,
+    required this.predictionService,
+    this.apiService,
+  });
 
   final List<SocialPost> _posts = [];
   bool _loaded = false;
@@ -85,29 +91,55 @@ class CommunityService extends ChangeNotifier {
 
   Future<void> load() async {
     if (_loaded) return;
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_postKey);
-    if (raw != null) {
+
+    if (apiService != null) {
       try {
-        final data = jsonDecode(raw);
-        if (data is List) {
-          _posts.clear();
-          for (final item in data) {
-            if (item is Map) {
-              final post = SocialPost.fromJson(Map<String, dynamic>.from(item));
-              if (post != null) _posts.add(post);
-            }
-          }
-        }
+        await _loadRemotePosts();
       } catch (_) {
-        _posts.clear();
+        await _loadLocalPosts();
       }
+    } else {
+      await _loadLocalPosts();
     }
+
     if (_posts.isEmpty) {
       _pushDefaultPosts();
     }
     _loaded = true;
     notifyListeners();
+  }
+
+  Future<void> _loadLocalPosts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_postKey);
+    if (raw == null) {
+      _posts.clear();
+      return;
+    }
+
+    try {
+      final data = jsonDecode(raw);
+      if (data is List) {
+        _posts.clear();
+        for (final item in data) {
+          if (item is Map) {
+            final post = SocialPost.fromJson(Map<String, dynamic>.from(item));
+            if (post != null) _posts.add(post);
+          }
+        }
+      }
+    } catch (_) {
+      _posts.clear();
+    }
+  }
+
+  Future<void> _loadRemotePosts() async {
+    final remoteData = await apiService!.fetchPosts();
+    _posts.clear();
+    for (final item in remoteData) {
+      final post = SocialPost.fromJson(Map<String, dynamic>.from(item));
+      if (post != null) _posts.add(post);
+    }
   }
 
   Future<void> refresh() async {
@@ -116,12 +148,35 @@ class CommunityService extends ChangeNotifier {
   }
 
   Future<void> addPost(String message) async {
+    final trimmed = message.trim();
+    if (trimmed.isEmpty) return;
+
     final post = SocialPost(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       user: 'You',
-      message: message.trim(),
+      message: trimmed,
       timestamp: DateTime.now(),
     );
+
+    if (apiService != null) {
+      try {
+        final json = await apiService!.createPost(
+          user: post.user,
+          message: post.message,
+          timestamp: post.timestamp,
+        );
+        final remotePost = SocialPost.fromJson(Map<String, dynamic>.from(json));
+        if (remotePost != null) {
+          _posts.add(remotePost);
+          await _savePosts();
+          notifyListeners();
+          return;
+        }
+      } catch (_) {
+        // Remote post failed; fall back to local storage.
+      }
+    }
+
     _posts.add(post);
     await _savePosts();
     notifyListeners();
@@ -137,9 +192,9 @@ class CommunityService extends ChangeNotifier {
     _posts.addAll([
       SocialPost(
         id: 'welcome',
-        user: 'Goalivo',
+        user: 'goallive',
         message:
-            'Welcome to the Fan Zone â€” share your thoughts, predict outcomes, and celebrate goals together!',
+            'Welcome to the community â€” share your thoughts, predict outcomes, and celebrate goals together!',
         timestamp: DateTime.now().subtract(const Duration(hours: 2)),
       ),
       SocialPost(

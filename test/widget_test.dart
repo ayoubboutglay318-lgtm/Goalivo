@@ -1,38 +1,66 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:football_live/main.dart';
-import 'package:football_live/services/commentary_service.dart';
-import 'package:football_live/services/community_service.dart';
-import 'package:football_live/services/football_api_service.dart';
-import 'package:football_live/services/favorites_service.dart';
-import 'package:football_live/services/goal_alerts_service.dart';
-import 'package:football_live/services/news_service.dart';
-import 'package:football_live/services/prediction_service.dart';
-import 'package:football_live/services/reactions_service.dart';
-import 'package:football_live/services/xp_service.dart';
+import 'package:kickkora/main.dart';
+import 'package:kickkora/models/league_models.dart';
+import 'package:kickkora/models/match_models.dart';
+import 'package:kickkora/models/standing_models.dart';
+import 'package:kickkora/models/team_models.dart';
+import 'package:kickkora/services/commentary_service.dart';
+import 'package:kickkora/services/football_api_service.dart';
+import 'package:kickkora/services/favorites_service.dart';
+import 'package:kickkora/services/goal_alerts_service.dart';
+import 'package:kickkora/services/news_service.dart';
+import 'package:kickkora/services/notification_preferences_service.dart';
+import 'package:kickkora/services/reactions_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    final apiService = FootballApiService();
+    SharedPreferences.setMockInitialValues({'onboarding_done': true});
+
+    final apiService = _EmptyFootballApiService();
     final favs = FavoritesService();
-    final xp = XpService();
-    final predictions = PredictionService();
     await tester.pumpWidget(
       FootbalLiveApp(
         apiService: apiService,
         favoritesService: favs,
-        xpService: xp,
         reactionsService: ReactionsService(),
-        predictionService: predictions,
         goalAlertsService: GoalAlertsService(
           favoritesService: favs,
           apiService: apiService,
         ),
-        communityService: CommunityService(xpService: xp, predictionService: predictions),
+        notifPrefs: NotificationPreferencesService(),
         newsService: NewsService(),
         commentaryService: CommentaryService(apiService: apiService),
       ),
     );
+    await tester.pump();
 
-    expect(find.text('KickOra'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
   });
+}
+
+class _EmptyFootballApiService extends FootballApiService {
+  @override
+  Future<List<FootballMatch>> getLiveMatches() async => [];
+
+  @override
+  Future<List<FootballMatch>> getTodayMatches() async => [];
+
+  @override
+  Future<List<FootballMatch>> getYesterdayMatches() async => [];
+
+  @override
+  Future<List<FootballMatch>> getTomorrowMatches() async => [];
+
+  @override
+  Future<List<StandingGroup>> getStandings() async => [];
+
+  @override
+  Future<List<TeamItem>> getTeams() async => [];
+
+  @override
+  Future<List<LeagueItem>> getLeagues() async => [];
 }

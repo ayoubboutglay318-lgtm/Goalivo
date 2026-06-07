@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://media.api-sports.io/football/players/306.png\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://media.api-sports.io/football/players/521.png\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://media.api-sports.io/football/players/284459.png\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://media.api-sports.io/football/players/176880.png\")",
+      "Bash(curl -s -I \"https://media.api-sports.io/football/players/306.png\")",
+      "Bash(curl -s -I \"https://media.api-sports.io/football/players/99999.png\")",
+      "WebSearch",
+      "WebFetch(domain:rapidapi.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl -s \"https://api-koora-production.up.railway.app/api/football/players?team=33&season=2024\")",
+      "Bash(curl -s \"https://api-koora-production.up.railway.app/api/football/players?search=Bellingham\")",
+      "Bash(curl -s \"https://api-koora-production.up.railway.app/api/football/squad?team=33\")",
+      "WebFetch(domain:github.com)",
+      "Bash(gh search *)",
+      "Bash(flutter clean *)",
+      "Bash(curl -s -I \"https://media.api-sports.io/football/players/84.png\")",
+      "Bash(python -c \"import json,sys; data=json.load\\(sys.stdin\\); m=data[0] if data else {}; print\\('home logo:', m.get\\('teams',{}\\).get\\('home',{}\\).get\\('logo',''\\)\\); print\\('away logo:', m.get\\('teams',{}\\).get\\('away',{}\\).get\\('logo',''\\)\\)\")",
+      "Bash(findstr \"logo\")",
+      "Bash(curl -s -I \"https://media.api-sports.io/football/players/554.png\")",
+      "Bash(curl -s -I https://media.api-sports.io/football/players/__TRACKED_VAR__.png)",
+      "Bash(curl -s \"https://media.api-sports.io/football/players/84.png\" -o \"C:\\\\Users\\\\Lenovo\\\\Desktop\\\\test_face.png\")",
+      "Bash(curl -s -I \"https://i.pravatar.cc/150?img=1\")",
+      "Bash(timeout 30 flutter logs -d RFCN30QEBYP)",
+      "Bash(findstr /i \"LINEUP\")",
+      "Bash(Select-String \"LINEUP\")",
+      "Bash(findstr -i \"firebase\\\\|auth\\\\|supabase\")",
+      "Bash(dart analyze *)",
+      "Bash(flutter create *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Lenovo\\Desktop\\app\\motivate_me"
+    ]
+  }
+}

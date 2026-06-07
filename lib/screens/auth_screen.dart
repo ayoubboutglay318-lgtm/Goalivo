@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../services/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -16,16 +17,19 @@ class _AuthScreenState extends State<AuthScreen>
   bool _loading = false;
   String? _error;
 
-  final _nameCtrl  = TextEditingController();
+  final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  final _passCtrl  = TextEditingController();
+  final _passCtrl = TextEditingController();
   late AnimationController _anim;
   late Animation<double> _fade;
 
   @override
   void initState() {
     super.initState();
-    _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _anim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
     _fade = CurvedAnimation(parent: _anim, curve: Curves.easeOut);
     _anim.forward();
   }
@@ -48,7 +52,10 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Future<void> _submit() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     String? err;
     if (_isLogin) {
       err = await widget.authService.login(
@@ -62,7 +69,12 @@ class _AuthScreenState extends State<AuthScreen>
         password: _passCtrl.text,
       );
     }
-    if (mounted) setState(() { _loading = false; _error = err; });
+    if (mounted) {
+      setState(() {
+        _loading = false;
+        _error = err;
+      });
+    }
   }
 
   @override
@@ -83,29 +95,29 @@ class _AuthScreenState extends State<AuthScreen>
               children: [
                 const SizedBox(height: 32),
                 // Logo
-                Container(
-                  width: 80, height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1565C0).withValues(alpha: 0.5),
-                        blurRadius: 24, spreadRadius: 4,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.sports_soccer, color: Colors.white, size: 40),
+                SvgPicture.asset(
+                  'assets/goalivo_logo.svg',
+                  width: 200,
+                  height: 100,
                 ),
                 const SizedBox(height: 16),
-                const Text('Goalivo',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900,
-                        color: Colors.white, letterSpacing: 1.2)),
+                const Text(
+                  'Goalivo',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 1.2,
+                  ),
+                ),
                 const SizedBox(height: 6),
-                Text(_isLogin ? 'Welcome back!' : 'Create your account',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14)),
+                Text(
+                  _isLogin ? 'Welcome back!' : 'Create your account',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 40),
 
                 // Toggle
@@ -117,8 +129,20 @@ class _AuthScreenState extends State<AuthScreen>
                   padding: const EdgeInsets.all(4),
                   child: Row(
                     children: [
-                      _Tab(label: 'Login',   active: _isLogin,  onTap: () { if (!_isLogin) _toggle(); }),
-                      _Tab(label: 'Sign Up', active: !_isLogin, onTap: () { if (_isLogin)  _toggle(); }),
+                      _Tab(
+                        label: 'Login',
+                        active: _isLogin,
+                        onTap: () {
+                          if (!_isLogin) _toggle();
+                        },
+                      ),
+                      _Tab(
+                        label: 'Sign Up',
+                        active: !_isLogin,
+                        onTap: () {
+                          if (_isLogin) _toggle();
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -152,8 +176,11 @@ class _AuthScreenState extends State<AuthScreen>
                         obscure: _obscure,
                         suffix: IconButton(
                           icon: Icon(
-                            _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                            color: Colors.white38, size: 20,
+                            _obscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: Colors.white38,
+                            size: 20,
                           ),
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
@@ -166,18 +193,34 @@ class _AuthScreenState extends State<AuthScreen>
                 if (_error != null) ...[
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: Colors.red.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline, color: Colors.redAccent, size: 16),
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.redAccent,
+                          size: 16,
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: Text(_error!,
-                            style: const TextStyle(color: Colors.redAccent, fontSize: 13))),
+                        Expanded(
+                          child: Text(
+                            _error!,
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -198,21 +241,35 @@ class _AuthScreenState extends State<AuthScreen>
                       boxShadow: [
                         BoxShadow(
                           color: const Color(0xFF1565C0).withValues(alpha: 0.4),
-                          blurRadius: 16, offset: const Offset(0, 6),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
                     child: TextButton(
                       onPressed: _loading ? null : _submit,
                       style: TextButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                       child: _loading
-                          ? const SizedBox(width: 22, height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : Text(_isLogin ? 'Login' : 'Create Account',
-                              style: const TextStyle(color: Colors.white,
-                                  fontSize: 16, fontWeight: FontWeight.w800)),
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              _isLogin ? 'Login' : 'Create Account',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                     ),
                   ),
                 ),
@@ -221,10 +278,19 @@ class _AuthScreenState extends State<AuthScreen>
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Contact support to reset your password.')),
+                      const SnackBar(
+                        content: Text(
+                          'Contact support to reset your password.',
+                        ),
+                      ),
                     ),
-                    child: Text('Forgot password?',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 13)),
+                    child: Text(
+                      'Forgot password?',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.45),
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 ],
 
@@ -232,13 +298,25 @@ class _AuthScreenState extends State<AuthScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(_isLogin ? "Don't have an account? " : 'Already have an account? ',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13)),
+                    Text(
+                      _isLogin
+                          ? "Don't have an account? "
+                          : 'Already have an account? ',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        fontSize: 13,
+                      ),
+                    ),
                     GestureDetector(
                       onTap: _toggle,
-                      child: Text(_isLogin ? 'Sign Up' : 'Login',
-                          style: const TextStyle(
-                              color: Color(0xFF42A5F5), fontSize: 13, fontWeight: FontWeight.w700)),
+                      child: Text(
+                        _isLogin ? 'Sign Up' : 'Login',
+                        style: const TextStyle(
+                          color: Color(0xFF42A5F5),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -269,13 +347,15 @@ class _Tab extends StatelessWidget {
             color: active ? const Color(0xFF1565C0) : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: active ? Colors.white : Colors.white38,
-                fontWeight: active ? FontWeight.w800 : FontWeight.w500,
-                fontSize: 14,
-              )),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: active ? Colors.white : Colors.white38,
+              fontWeight: active ? FontWeight.w800 : FontWeight.w500,
+              fontSize: 14,
+            ),
+          ),
         ),
       ),
     );
@@ -324,7 +404,10 @@ class _Field extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
     );
   }

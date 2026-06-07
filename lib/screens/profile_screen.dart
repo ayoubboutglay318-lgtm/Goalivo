@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../services/goal_alerts_service.dart';
 import '../services/notification_preferences_service.dart';
@@ -30,21 +30,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 12),
         // App logo / name
         Center(
-          child: Column(children: [
-            Container(
-              width: 80, height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                border: Border.all(color: theme.colorScheme.primary, width: 2),
+          child: Column(
+            children: [
+              SvgPicture.asset(
+                'assets/goalivo_logo.svg',
+                width: 200,
+                height: 100,
               ),
-              child: Icon(Icons.sports_soccer, size: 40, color: theme.colorScheme.primary),
-            ),
-            const SizedBox(height: 12),
-            Text('Goalivo', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 4),
-            Text('Football Live Scores', style: theme.textTheme.bodySmall),
-          ]),
+              const SizedBox(height: 4),
+              Text('Live football scores', style: theme.textTheme.bodySmall),
+            ],
+          ),
         ),
         const SizedBox(height: 32),
 
@@ -58,7 +54,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => NotificationSettingsScreen(service: widget.notifPrefs),
+              builder: (_) =>
+                  NotificationSettingsScreen(service: widget.notifPrefs),
             ),
           ),
         ),
@@ -70,17 +67,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _SettingsTile(
           icon: Icons.privacy_tip_outlined,
           title: 'Privacy Policy',
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+          ),
         ),
         const SizedBox(height: 8),
         _SettingsTile(
           icon: Icons.description_outlined,
           title: 'Terms of Service',
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsScreen())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const TermsScreen()),
+          ),
         ),
         const SizedBox(height: 32),
         Center(
-          child: Text('Version 1.0.0', style: theme.textTheme.bodySmall?.copyWith(color: Colors.white24)),
+          child: Text(
+            'Version 1.0.0',
+            style: theme.textTheme.bodySmall?.copyWith(color: Colors.white24),
+          ),
         ),
         const SizedBox(height: 24),
       ],
@@ -95,7 +101,12 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title.toUpperCase(),
-      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white38, letterSpacing: 1.2),
+      style: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: Colors.white38,
+        letterSpacing: 1.2,
+      ),
     );
   }
 }
@@ -105,13 +116,11 @@ class _SettingsTile extends StatelessWidget {
     required this.icon,
     required this.title,
     this.subtitle,
-    this.trailing,
     this.onTap,
   });
   final IconData icon;
   final String title;
   final String? subtitle;
-  final Widget? trailing;
   final VoidCallback? onTap;
 
   @override
@@ -126,20 +135,38 @@ class _SettingsTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white10),
         ),
-        child: Row(children: [
-          Icon(icon, size: 20, color: theme.colorScheme.primary),
-          const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-            if (subtitle != null) ...[
-              const SizedBox(height: 2),
-              Text(subtitle!, style: const TextStyle(fontSize: 12, color: Colors.white38)),
-            ],
-          ])),
-          if (trailing != null) trailing!
-          else if (onTap != null)
-            const Icon(Icons.chevron_right, size: 18, color: Colors.white24),
-        ]),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: theme.colorScheme.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white38,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (onTap != null)
+              const Icon(Icons.chevron_right, size: 18, color: Colors.white24),
+          ],
+        ),
       ),
     );
   }
@@ -147,5 +174,9 @@ class _SettingsTile extends StatelessWidget {
 
 // Keep XpToast stub so other files that might reference it don't break
 class XpToast {
-  static void show(BuildContext context, {required int xpGained, List<dynamic> newBadges = const []}) {}
+  static void show(
+    BuildContext context, {
+    required int xpGained,
+    List<dynamic> newBadges = const [],
+  }) {}
 }

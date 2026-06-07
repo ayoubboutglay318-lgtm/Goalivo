@@ -149,7 +149,7 @@ class _LeagueDetailScreenState extends State<LeagueDetailScreen> {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => MatchDetailScreen(match: match)),
+                                builder: (_) => MatchDetailScreen(match: match, apiService: widget.apiService)),
                           ),
                         );
                       },

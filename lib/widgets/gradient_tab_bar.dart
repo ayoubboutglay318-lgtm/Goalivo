@@ -116,7 +116,7 @@ class GradientTabBar extends StatelessWidget {
       labelColor: theme.colorScheme.primary,
       unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
       splashFactory: NoSplash.splashFactory,
-      overlayColor: const MaterialStatePropertyAll(Colors.transparent),
+      overlayColor: const WidgetStatePropertyAll(Colors.transparent),
       tabs: tabs,
     );
   }

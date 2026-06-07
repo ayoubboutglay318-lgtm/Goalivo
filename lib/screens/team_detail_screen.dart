@@ -138,7 +138,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                                   (article) => SportsNewsArticle(
                                     title: article.title,
                                     description: article.summary,
-                                    source: 'Goalivo Fan Zone',
+                                    source: 'goallive Community',
                                     publishedAt: article.publishedAt,
                                   ),
                                 )
@@ -256,7 +256,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => MatchDetailScreen(match: match),
+                          builder: (_) => MatchDetailScreen(match: match, apiService: widget.apiService),
                         ),
                       ),
                     );

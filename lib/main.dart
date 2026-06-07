@@ -12,7 +12,9 @@ import 'services/goal_alerts_service.dart';
 import 'services/news_service.dart';
 import 'services/notification_service.dart';
 import 'services/notification_preferences_service.dart';
+import 'services/prediction_service.dart';
 import 'services/reactions_service.dart';
+import 'services/xp_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +22,8 @@ void main() async {
   final reactions = ReactionsService();
   final apiService = FootballApiService();
   final newsService = NewsService();
+  final xpService = XpService();
+  final predictionService = PredictionService();
   final commentaryService = CommentaryService(apiService: apiService);
   final notifPrefs = NotificationPreferencesService();
   final goalAlerts = GoalAlertsService(
@@ -31,6 +35,8 @@ void main() async {
     favs.load(),
     reactions.load(),
     notifPrefs.load(),
+    predictionService.load(),
+    xpService.onAppOpen(),
   ]);
   try { await NotificationService.instance.init(); } catch (_) {}
   await goalAlerts.load();
@@ -282,7 +288,7 @@ class _FootbalLiveAppState extends State<FootbalLiveApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Goalivo',
+      title: 'goallive',
       debugShowCheckedModeBanner: false,
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),

@@ -1,5 +1,5 @@
 name: kickkora
-description: "Goalivo - Live football scores, fixtures and lineups."
+description: "goallive - Live football scores, fixtures and lineups."
 publish_to: 'none'
 
 version: 1.0.0+2
@@ -28,6 +28,7 @@ dependencies:
   webview_flutter: ^4.13.1
   flutter_local_notifications: ^18.0.1
   timezone: ^0.9.4
+  flutter_svg: ^2.1.1
 
 dev_dependencies:
   flutter_test:
@@ -54,6 +55,8 @@ flutter:
 
   assets:
     - assets/logo.png
+    - assets/goalivo_logo.svg
+    - assets/logo.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 class PulseAnimation extends StatefulWidget {
@@ -200,8 +202,9 @@ class _ConfettiParticleState extends State<ConfettiParticle>
 class _Particle {
   _Particle(this.index, this.total) {
     final angle = (index / total) * 2 * 3.141592653589793;
-    velocityX = 100 * (100 * (index - total / 2) / 100) / 100;
-    velocityY = -100 - (index % 5) * 20;
+    final speed = 70.0 + (index % 5) * 12;
+    velocityX = math.cos(angle) * speed;
+    velocityY = math.sin(angle) * speed - 80;
     color = [
       Colors.cyan.shade300,
       Colors.blue.shade400,
@@ -219,11 +222,9 @@ class _Particle {
 
   Offset getOffset(double progress) {
     const gravity = 100.0;
-    const maxDistance = 500.0;
 
-    double x = velocityX * progress * maxDistance;
-    double y = velocityY * progress * maxDistance +
-        0.5 * gravity * progress * progress * maxDistance;
+    double x = velocityX * progress;
+    double y = velocityY * progress + 0.5 * gravity * progress * progress;
 
     return Offset(x, y);
   }

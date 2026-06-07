@@ -1,0 +1,30 @@
+<svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e"/>
+      <stop offset="100%" style="stop-color:#16a34a"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ade80"/>
+      <stop offset="100%" style="stop-color:#22c55e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon: target rings -->
+  <g transform="translate(55, 100)">
+    <circle cx="0" cy="0" r="46" fill="url(#greenGrad)"/>
+    <circle cx="0" cy="0" r="34" fill="white"/>
+    <circle cx="0" cy="0" r="22" fill="url(#accentGrad)"/>
+    <circle cx="0" cy="0" r="10" fill="white"/>
+    <!-- Arrow pointing up-right through the rings -->
+    <line x1="-18" y1="18" x2="9" y2="-9" stroke="white" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="9,-18  18,-9  1,-1" fill="white"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="118" y="108" font-size="52" font-weight="800" fill="#ffffff" letter-spacing="-1.5" dominant-baseline="middle" font-family="'Segoe UI', Arial, sans-serif">goal</text>
+  <text x="226" y="108" font-size="52" font-weight="800" fill="url(#greenGrad)" letter-spacing="-1.5" dominant-baseline="middle" font-family="'Segoe UI', Arial, sans-serif">ivo</text>
+
+  <!-- Tagline -->
+  <text x="119" y="152" font-size="12.5" fill="#e5e7eb" letter-spacing="3.5" font-weight="600" font-family="'Segoe UI', Arial, sans-serif">ACHIEVE MORE</text>
+</svg>

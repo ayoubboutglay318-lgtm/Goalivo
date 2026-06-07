@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/league_models.dart';
 import '../models/match_models.dart';
@@ -61,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen>
   // Top tab controllers per section
   late TabController _homeTabCtrl;    // Live, Today
   late TabController _matchesTabCtrl; // Yesterday, Tomorrow, Standings
-  late TabController _exploreTabCtrl; // Favorites, Teams, Leagues, Fan Zone, Commentary
+  late TabController _exploreTabCtrl; // Favorites, Teams, Leagues, Commentary
 
   final TextEditingController _searchController = TextEditingController();
   Timer? _liveRefreshTimer;
@@ -399,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 style: const TextStyle(color: Colors.white, fontSize: 16),
               )
-            : Image.asset('assets/logo.png', height: 36),
+            : SvgPicture.asset('assets/goalivo_logo.svg', height: 36),
         actions: [
           if (_bottomIndex < 3) ...[
             if (_isSearching && _searchQuery.isNotEmpty)

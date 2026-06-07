@@ -27,7 +27,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   static const _slides = [
     _Slide(
       emoji: '⚽',
-      title: 'Welcome to KickKora',
+      title: 'Welcome to goallive',
       subtitle: 'Your all-in-one football companion. Live scores, stats, and much more — all in one place.',
       gradient: [Color(0xFF0A0E27), Color(0xFF1B2555), Color(0xFF0F4C3A)],
       icon: Icons.sports_soccer,

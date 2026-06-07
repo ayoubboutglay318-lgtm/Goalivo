@@ -72,11 +72,18 @@ class FootballApiService extends ChangeNotifier {
 
   Future<List<MatchTeamStats>> getMatchStats(int fixtureId) async {
     try {
-      final result = await _getRaw(
-        '/api/football/statistics/$fixtureId',
-        (data) => _parseList(data, MatchTeamStats.fromJson),
-      );
-      return result.data;
+      final uri = Uri.parse(
+          'https://$_rapidApiHost/v3/fixtures/statistics?fixture=$fixtureId');
+      final response = await _client.get(uri, headers: {
+        'x-rapidapi-key': _rapidApiKey,
+        'x-rapidapi-host': _rapidApiHost,
+        'Accept': 'application/json',
+      }).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) return [];
+      final decoded = jsonDecode(response.body);
+      final list = (decoded['response'] as List<dynamic>?) ?? [];
+      return list.map((e) => MatchTeamStats.fromJson(_asMap(e))).toList();
     } catch (_) {
       return [];
     }
@@ -89,16 +96,41 @@ class FootballApiService extends ChangeNotifier {
     try {
       final uri = Uri.parse(
           'https://$_rapidApiHost/v3/fixtures/lineups?fixture=$fixtureId');
+      debugPrint('[LINEUP] Fetching lineups for fixture: $fixtureId from $uri');
       final response = await _client.get(uri, headers: {
         'x-rapidapi-key': _rapidApiKey,
         'x-rapidapi-host': _rapidApiHost,
+        'Accept': 'application/json',
       }).timeout(const Duration(seconds: 15));
 
-      if (response.statusCode != 200) return [];
+      debugPrint('[LINEUP] Status: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        debugPrint('[LINEUP] Error response: ${response.body.substring(0, 500)}');
+        return [];
+      }
+
       final decoded = jsonDecode(response.body);
-      final list = decoded['response'] as List<dynamic>? ?? [];
-      return list.map((e) => MatchLineup.fromJson(e as Map<String, dynamic>)).toList();
-    } catch (_) {
+      debugPrint('[LINEUP] Response keys: ${decoded.keys}');
+
+      final list = (decoded['response'] as List<dynamic>?) ?? [];
+      debugPrint('[LINEUP] Got ${list.length} lineups from API');
+
+      final lineups = <MatchLineup>[];
+      for (final item in list) {
+        try {
+          final lineup = MatchLineup.fromJson(_asMap(item));
+          lineups.add(lineup);
+          debugPrint('[LINEUP] Team: ${lineup.team.name}, Start XI: ${lineup.startXI.length}, Subs: ${lineup.substitutes.length}');
+          for (final p in lineup.startXI.take(3)) {
+            debugPrint('[LINEUP]   - ${p.name} (ID: ${p.id}, Photo: ${p.photoUrl})');
+          }
+        } catch (e) {
+          debugPrint('[LINEUP] Error parsing lineup: $e');
+        }
+      }
+      return lineups;
+    } catch (e) {
+      debugPrint('[LINEUP] Exception: $e');
       return [];
     }
   }

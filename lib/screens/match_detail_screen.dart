@@ -7,7 +7,6 @@ import '../services/football_api_service.dart';
 import '../services/notification_service.dart';
 import '../widgets/event_timeline.dart';
 import '../widgets/info_chip.dart';
-import '../widgets/lineup_pitch_widget.dart';
 import '../widgets/man_of_match_widget.dart';
 import '../widgets/player_ratings_widget.dart';
 
@@ -27,18 +26,17 @@ class MatchDetailScreen extends StatefulWidget {
 class _MatchDetailScreenState extends State<MatchDetailScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  Future<List<MatchLineup>>? _lineupsFuture;
   Future<List<MatchTeamStats>>? _statsFuture;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_onTabChanged);
-    // Preload lineups immediately so they're ready when user taps the tab
+    // Preload stats immediately
     final id = widget.match.fixture.id;
     if (id != null && widget.apiService != null) {
-      _lineupsFuture = widget.apiService!.getLineups(id);
+      _statsFuture = widget.apiService!.getMatchStats(id);
     }
   }
 
@@ -47,10 +45,7 @@ class _MatchDetailScreenState extends State<MatchDetailScreen>
     HapticFeedback.selectionClick();
     final id = widget.match.fixture.id;
     if (id == null || widget.apiService == null) return;
-    if (_tabController.index == 2 && _lineupsFuture == null) {
-      setState(() => _lineupsFuture = widget.apiService!.getLineups(id));
-    }
-    if (_tabController.index == 3 && _statsFuture == null) {
+    if (_tabController.index == 2 && _statsFuture == null) {
       setState(() => _statsFuture = widget.apiService!.getMatchStats(id));
     }
   }
@@ -92,7 +87,6 @@ class _MatchDetailScreenState extends State<MatchDetailScreen>
               tabs: const [
                 Tab(text: 'Overview'),
                 Tab(text: 'Events'),
-                Tab(text: 'Lineups'),
                 Tab(text: 'Stats'),
               ],
             ),
@@ -109,11 +103,6 @@ class _MatchDetailScreenState extends State<MatchDetailScreen>
                   status: status,
                 ),
                 _EventsTab(match: match),
-                _LineupsTab(
-                  future: _lineupsFuture,
-                  match: match,
-                  hasApiService: widget.apiService != null,
-                ),
                 _StatsTab(
                   future: _statsFuture,
                   match: match,
@@ -202,48 +191,6 @@ class _EventsTab extends StatelessWidget {
         ManOfMatchWidget(match: match),
         const SizedBox(height: 32),
       ],
-    );
-  }
-}
-
-// ── Lineups tab ───────────────────────────────────────────────────────────────
-
-class _LineupsTab extends StatelessWidget {
-  const _LineupsTab({required this.future, required this.match, required this.hasApiService});
-  final Future<List<MatchLineup>>? future;
-  final FootballMatch match;
-  final bool hasApiService;
-
-  @override
-  Widget build(BuildContext context) {
-    // Show pitch immediately if we have inline lineup data or team plan fallback
-    if (future == null) {
-      return _buildPitch(context, null, null);
-    }
-    return FutureBuilder<List<MatchLineup>>(
-      future: future,
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return const _PitchSkeleton();
-        }
-        final lineups = snap.data ?? [];
-        final home = lineups.where((l) => l.team.id == match.teams.home.id).firstOrNull;
-        final away = lineups.where((l) => l.team.id == match.teams.away.id).firstOrNull;
-        return _buildPitch(context, home, away);
-      },
-    );
-  }
-
-  Widget _buildPitch(BuildContext context, MatchLineup? home, MatchLineup? away) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-      child: LineupPitchWidget(
-        homeTeamName: match.teams.home.name ?? 'Home',
-        awayTeamName: match.teams.away.name ?? 'Away',
-        homeLineup: home,
-        awayLineup: away,
-        events: match.events,
-      ),
     );
   }
 }
