@@ -26,8 +26,8 @@ workflows:
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
-      - name: Build iOS app for Simulator (no code signing required)
-        script: flutter build ios --simulator --release
+      - name: Build iOS app for Simulator (debug mode)
+        script: flutter build ios --simulator
     artifacts:
       - build/ios/iphonesimulator/*.app
     publishing:
