@@ -23,45 +23,13 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-      groups:
-        - ios_credentials
-    vars:
-      BUNDLE_ID: "com.goalivo.app"
-      APP_STORE_CONNECT_KEY_IDENTIFIER: $APPSTORE_KEY_ID
-      APP_STORE_CONNECT_ISSUER_ID: $APPSTORE_ISSUER_ID
-      APP_STORE_CONNECT_PRIVATE_KEY: $APPSTORE_PRIVATE_KEY
     scripts:
-      - name: Set up keychain
-        script: keychain initialize
-      - name: Fetch signing certificate
-        script: app-store-connect fetch-signing-files $BUNDLE_ID --type IOS --create
-      - name: Set up code signing settings on Xcode project
-        script: xcode-project use-profiles
       - name: Get Flutter packages
         script: flutter pub get
       - name: Build iOS app for App Store
-        script: |
-          flutter build ios --release \
-            --build-number=$BUILD_NUMBER \
-            --build-name=1.0.0
-      - name: Build IPA
-        script: |
-          cd ios
-          xcodebuild -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -derivedDataPath ../build/ios_build \
-            -arch arm64 \
-            build-for-testing
-      - name: Package IPA
-        script: |
-          cd build/ios_build
-          xcodebuild -exportArchive \
-            -archivePath "Goalivo.xcarchive" \
-            -exportOptionsPlist "../../ios/exportOptions.plist" \
-            -exportPath "."
+        script: flutter build ios --release
     artifacts:
-      - build/ios_build/*.ipa
+      - build/ios/iphoneos/*.app
     publishing:
       email:
         recipients:
