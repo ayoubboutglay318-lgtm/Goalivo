@@ -16,6 +16,25 @@ workflows:
         recipients:
           - ayoubboutglay318@gmail.com
 
+  ios-debug:
+    name: iOS Debug Device Build
+    max_build_duration: 120
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Build iOS app for Device (debug mode)
+        script: flutter build ios --debug
+    artifacts:
+      - build/ios/iphoneos/*.app
+    publishing:
+      email:
+        recipients:
+          - ayoubboutglay318@gmail.com
+
   ios-release:
     name: iOS Simulator Build
     max_build_duration: 120
